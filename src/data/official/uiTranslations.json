@@ -1,0 +1,20 @@
+{
+  "de": {
+    "supporter_analysis": "Supporter-Analyse",
+    "customer_email": "Kunden-E-Mail",
+    "continue": "Weiter",
+    "not_solved": "Nicht gelöst"
+  },
+  "en": {
+    "supporter_analysis": "Supporter Analysis",
+    "customer_email": "Customer Email",
+    "continue": "Continue",
+    "not_solved": "Not solved"
+  },
+  "pt": {
+    "supporter_analysis": "Análise do Suporte",
+    "customer_email": "E-mail do Cliente",
+    "continue": "Continuar",
+    "not_solved": "Não resolvido"
+  }
+}

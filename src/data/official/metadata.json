@@ -1,0 +1,5 @@
+{
+  "total_cases": 70,
+  "models": ["iX1600", "iX1500", "iX1300", "iX100", "iX500", "iX1400", "iX2500"],
+  "categories": ["cloud", "detect", "firmware", "home", "ocr", "profile", "scan", "speed", "usb", "wifi"]
+}

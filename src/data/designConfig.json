@@ -1,0 +1,29 @@
+{
+  "page1": {
+    "structure": ["language_selector", "empty_issue_field", "brain_analyze_button"],
+    "remove": ["header", "navigation", "debug", "counters", "helper_text", "placeholder_text"],
+    "brain": {
+      "asset_rule": "Use the exact transparent brain PNG selected by the user. Do not generate or replace it.",
+      "size_px": 340,
+      "position": "closer_to_issue_field",
+      "recommended_css": {
+        "width": "340px",
+        "height": "340px",
+        "marginTop": "3.5vh",
+        "opacity": 1
+      },
+      "animation": ["soft floating", "breathing glow", "hover scale 1.04"]
+    },
+    "issue_field": {
+      "placeholder": "",
+      "width": "min(680px,72vw)",
+      "height": "175px",
+      "marginBottomToBrain": "3.5vh"
+    },
+    "background": {
+      "top": "cream / peach / pastel pink",
+      "middle": "lavender / soft blue",
+      "bottom": "deep navy / black behind brain"
+    }
+  }
+}

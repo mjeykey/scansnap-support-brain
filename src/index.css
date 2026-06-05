@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --font-inter: 'Inter', sans-serif;
+
+    /* Dark theme as default */
+    --background: 220 20% 6%;
+    --foreground: 0 0% 95%;
+    --card: 220 18% 10%;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 18% 10%;
+    --popover-foreground: 0 0% 95%;
+
+    /* Turquoise primary */
+    --primary: 174 65% 48%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Pink secondary */
+    --secondary: 330 70% 60%;
+    --secondary-foreground: 0 0% 100%;
+
+    /* Gold accent */
+    --accent: 43 90% 52%;
+    --accent-foreground: 0 0% 0%;
+
+    --muted: 220 18% 14%;
+    --muted-foreground: 220 10% 55%;
+
+    --destructive: 0 72% 55%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 220 15% 18%;
+    --input: 220 15% 18%;
+    --ring: 174 65% 48%;
+
+    --chart-1: 174 65% 48%;
+    --chart-2: 330 70% 60%;
+    --chart-3: 43 90% 52%;
+    --chart-4: 200 70% 50%;
+    --chart-5: 280 65% 60%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 220 20% 7%;
+    --sidebar-foreground: 0 0% 90%;
+    --sidebar-primary: 174 65% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 18% 14%;
+    --sidebar-accent-foreground: 0 0% 90%;
+    --sidebar-border: 220 15% 18%;
+    --sidebar-ring: 174 65% 48%;
+
+    /* Panel colors (pearl white / soft rose used as CSS vars) */
+    --panel-light: 0 0% 97%;
+    --panel-rose: 345 60% 96%;
+  }
+
+  /* Light mode override */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 5%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 5%;
+    --popover: 0 0% 98%;
+    --popover-foreground: 0 0% 5%;
+    --primary: 174 65% 40%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 330 70% 55%;
+    --secondary-foreground: 0 0% 100%;
+    --accent: 43 90% 48%;
+    --accent-foreground: 0 0% 0%;
+    --muted: 0 0% 94%;
+    --muted-foreground: 0 0% 45%;
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 174 65% 40%;
+    --sidebar-background: 0 0% 96%;
+    --sidebar-foreground: 0 0% 10%;
+    --sidebar-primary: 174 65% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 92%;
+    --sidebar-accent-foreground: 0 0% 10%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 174 65% 40%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground font-inter;
+  }
+}
+
+/* Brain glow keyframes */
+@keyframes brainPulse {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(45, 212, 191, 0.4)); }
+  50% { filter: drop-shadow(0 0 20px rgba(45, 212, 191, 0.7)) drop-shadow(0 0 40px rgba(236, 72, 153, 0.2)); }
+}
+
+@keyframes veinFlow {
+  0% { stroke-dashoffset: 200; opacity: 0.4; }
+  50% { stroke-dashoffset: 0; opacity: 1; }
+  100% { stroke-dashoffset: -200; opacity: 0.4; }
+}
+
+@keyframes ripple {
+  0% { transform: scale(0.8); opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}

@@ -1,0 +1,127 @@
+[
+  {
+    "module_id": "fw_state_check",
+    "category": "firmware",
+    "title": {
+      "de": "Firmware-Status prüfen",
+      "en": "Check firmware state",
+      "pt": "Verificar o estado do firmware",
+      "es": "Comprobar el estado del firmware",
+      "fr": "Vérifier l'état du firmware",
+      "it": "Controllare lo stato del firmware",
+      "nl": "Firmwarestatus controleren",
+      "ja": "ファームウェア状態を確認する",
+      "zh": "检查固件状态"
+    },
+    "supporter_explanation": {
+      "de": "Wir prüfen zuerst, ob der Scanner noch normal startet und ob ScanSnap Home den Scanner überhaupt noch ansprechen kann. Das ist wichtig, weil ein fehlgeschlagenes Update nicht automatisch bedeutet, dass ein Recovery-Modus nötig ist. Wenn der Scanner noch erkannt wird, ist der normale Update-Weg meist sicherer als ein Low-Level-Recovery.",
+      "en": "First verify whether the scanner still boots normally and whether ScanSnap Home can still communicate with it. A failed update does not automatically mean low-level recovery is required. If the scanner is still detected, the normal update path is usually safer."
+    },
+    "customer_action": {
+      "de": "Bitte prüfen Sie zunächst, ob der Scanner normal startet und ob er in ScanSnap Home angezeigt wird.",
+      "en": "Please first check whether the scanner starts normally and whether it appears in ScanSnap Home."
+    },
+    "why": {
+      "de": "So unterscheiden wir, ob es sich um ein reines Update-/Kommunikationsproblem handelt oder ob der Scanner tatsächlich in einen Recovery-Pfad muss.",
+      "en": "This helps distinguish a normal update/communication issue from a real recovery situation."
+    },
+    "official_links": [
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356659303439--Windows-macOS-Das-Firmwareupdate-scheitert",
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/categories/10356647101839-iX1600"
+    ]
+  },
+  {
+    "module_id": "direct_usb_check",
+    "category": "communication",
+    "title": {
+      "de": "Direkte USB-Verbindung prüfen",
+      "en": "Check direct USB connection"
+    },
+    "supporter_explanation": {
+      "de": "USB wird hier nicht als Selbstzweck geprüft, sondern als stabilster Kommunikationsweg. Bei Firmware- oder Verbindungsproblemen muss zuerst ausgeschlossen werden, dass Hub, Dockingstation, Verlängerung oder ein instabiler Port die Kommunikation unterbrechen.",
+      "en": "USB is tested because it is the most stable communication path. For firmware or connection issues, hubs, docks, extensions or unstable ports must be ruled out first."
+    },
+    "customer_action": {
+      "de": "Bitte verbinden Sie den Scanner direkt mit einem nativen USB-Anschluss am Computer. Verwenden Sie dabei keinen USB-Hub, keine Dockingstation und keine Verlängerung.",
+      "en": "Please connect the scanner directly to a native USB port on the computer. Do not use a USB hub, docking station or extension cable."
+    },
+    "why": {
+      "de": "Eine direkte Verbindung reduziert Kommunikationsabbrüche und ist besonders wichtig, wenn ein Firmware-Update geprüft oder erneut gestartet werden soll.",
+      "en": "A direct connection reduces communication dropouts and is especially important when checking or retrying firmware updates."
+    },
+    "official_links": [
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356675083535--Windows-macOS-Der-ScanSnap-und-ein-Computer-k%C3%B6nnen-nicht-%C3%BCber-ein-USB-Kabel-miteinander-verbunden-werden"
+    ]
+  },
+  {
+    "module_id": "device_manager_check",
+    "category": "usb",
+    "title": {
+      "de": "Erkennung im Geräte-Manager prüfen",
+      "en": "Check Device Manager detection"
+    },
+    "supporter_explanation": {
+      "de": "Wenn der Scanner per USB verbunden ist, prüfen wir in Windows, ob das Gerät überhaupt auf Systemebene erkannt wird. Wird es dort nicht erkannt, liegt das Problem vor ScanSnap Home und muss zuerst auf USB-/Windows-Ebene eingegrenzt werden.",
+      "en": "When connected by USB, check whether Windows detects the scanner at system level. If not, the issue is before ScanSnap Home and must be isolated at USB/Windows level first."
+    },
+    "customer_action": {
+      "de": "Bitte öffnen Sie den Geräte-Manager und prüfen Sie, ob der Scanner dort angezeigt wird oder ob ein unbekanntes/fehlerhaftes USB-Gerät erscheint.",
+      "en": "Please open Device Manager and check whether the scanner appears there or whether an unknown/faulty USB device is shown."
+    },
+    "why": {
+      "de": "Damit sehen wir, ob Windows den Scanner grundsätzlich erkennt oder ob die Verbindung bereits auf Geräteebene scheitert.",
+      "en": "This shows whether Windows basically detects the scanner or whether the connection fails at device level."
+    },
+    "official_links": [
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356648901263--Windows-Um-das-Fenster-Ger%C3%A4te-Manager-anzuzeigen",
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356675083535--Windows-macOS-Der-ScanSnap-und-ein-Computer-k%C3%B6nnen-nicht-%C3%BCber-ein-USB-Kabel-miteinander-verbunden-werden"
+    ]
+  },
+  {
+    "module_id": "sfc_dism_repair",
+    "category": "windows_integrity",
+    "title": {
+      "de": "Windows-Systemintegrität prüfen (SFC/DISM)",
+      "en": "Check Windows system integrity (SFC/DISM)"
+    },
+    "supporter_explanation": {
+      "de": "Wenn USB und/oder WLAN instabil sind, ScanSnap Home nach Updates auffällig reagiert oder Fehler wie 0x8007045A, 0xc000007b, PFUSSMON/FullTrustNotifier auftreten, prüfen wir zuerst die Windows-Komponenten. Das ist weniger invasiv als ein USB-Stack-Rebuild und behebt oft beschädigte System- oder Kommunikationskomponenten.",
+      "en": "If USB and/or Wi-Fi are unstable, ScanSnap Home behaves strangely after updates, or errors such as 0x8007045A, 0xc000007b, PFUSSMON/FullTrustNotifier occur, check Windows components first. This is less invasive than rebuilding the USB stack and often fixes damaged system or communication components."
+    },
+    "customer_action": {
+      "de": "Bitte öffnen Sie die Eingabeaufforderung als Administrator und führen Sie die Reparatur in dieser Reihenfolge aus:\n1. sfc /scannow\n2. Computer neu starten\n3. DISM /Online /Cleanup-Image /RestoreHealth\n4. Computer neu starten\n5. erneut sfc /scannow ausführen\nBitte wiederholen Sie sfc /scannow, bis keine Integritätsverletzungen mehr gefunden werden.",
+      "en": "Please open Command Prompt as administrator and run the repair in this order:\n1. sfc /scannow\n2. restart the computer\n3. DISM /Online /Cleanup-Image /RestoreHealth\n4. restart the computer\n5. run sfc /scannow again\nPlease repeat sfc /scannow until no integrity violations are found."
+    },
+    "why": {
+      "de": "Beschädigte Windows-Komponenten können ScanSnap Home, USB-Kommunikation, WLAN-Kommunikation oder Laufzeitbibliotheken stören. Die Reihenfolge SFC → DISM → SFC repariert zuerst erkennbare Dateien, dann den Komponentenstore und anschließend verbleibende Inkonsistenzen.",
+      "en": "Damaged Windows components can affect ScanSnap Home, USB communication, Wi-Fi communication or runtime libraries. The sequence SFC → DISM → SFC first repairs detectable files, then the component store, then remaining inconsistencies."
+    },
+    "official_links": [
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356680333583--Windows-Um-das-Fenster-Eingabeaufforderung-anzuzeigen"
+    ]
+  },
+  {
+    "module_id": "usb_stack_rebuild",
+    "category": "usb",
+    "title": {
+      "de": "USB-Stack erst nach Systemprüfung neu aufbauen",
+      "en": "Rebuild USB stack only after system checks"
+    },
+    "supporter_explanation": {
+      "de": "Der USB-Stack-Rebuild ist kein früher Standardschritt. Er wird gezielt genutzt, wenn der Scanner in Windows nicht korrekt enumeriert, als fehlerhaftes USB-Gerät erscheint oder nach SFC/DISM weiterhin ein reines USB-Erkennungsproblem besteht.",
+      "en": "USB stack rebuild is not an early default step. Use it when Windows does not enumerate the scanner correctly, it appears as a faulty USB device, or a pure USB detection issue remains after SFC/DISM."
+    },
+    "customer_action": {
+      "de": "Bitte öffnen Sie den Geräte-Manager, aktivieren Sie 'Ausgeblendete Geräte anzeigen' und entfernen Sie alte/ausgegraute ScanSnap- oder Scanner-Einträge. USB-Root-Hubs sollten nur entfernt werden, wenn dies ausdrücklich als nächster Schritt ausgewählt wurde. Danach starten Sie den Computer neu und verbinden den Scanner direkt per USB.",
+      "en": "Please open Device Manager, enable 'Show hidden devices' and remove old/greyed ScanSnap or scanner entries. USB root hubs should only be removed if explicitly selected as the next step. Then restart the computer and connect the scanner directly via USB."
+    },
+    "why": {
+      "de": "Alte Gerätezuordnungen können verhindern, dass Windows den Scanner sauber neu erkennt. Dieser Schritt sollte aber erst nach weniger invasiven Prüfungen erfolgen.",
+      "en": "Old device registrations can prevent Windows from detecting the scanner cleanly again. This step should follow less invasive checks."
+    },
+    "official_links": [
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356648901263--Windows-Um-das-Fenster-Ger%C3%A4te-Manager-anzuzeigen",
+      "https://scansnap-ts.pfu.ricoh.com/hc/de/articles/10356675083535--Windows-macOS-Der-ScanSnap-und-ein-Computer-k%C3%B6nnen-nicht-%C3%BCber-ein-USB-Kabel-miteinander-verbunden-werden"
+    ]
+  }
+]

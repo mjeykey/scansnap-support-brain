@@ -1,0 +1,28 @@
+{
+  "normal_ai_cost": "0 credits",
+  "search_mode": "LOCAL_ONLY",
+  "ai_allowed_only_after_explicit_click": true,
+  "known_data_filtering": {
+    "rule": "Never ask customer for information already known internally.",
+    "check_sources": ["issue text", "detected model", "selected language", "supporter selections", "completed steps", "case metadata"],
+    "only_render_missing_request_modules": true
+  },
+  "final_page": {
+    "show": ["analysis steps performed", "completed steps", "failed steps", "blocked steps", "selectable email modules", "case summary", "selected escalation/request template if chosen"],
+    "email_generation": "module_based_only",
+    "case_summary": "short_informative_english_from_analysis_state",
+    "escalation_templates": "dropdown_template_based_only"
+  },
+  "firmware_failed_update_order": [
+    "model detection",
+    "boot/state check",
+    "direct USB availability",
+    "ScanSnap Home detection",
+    "normal firmware update retry if scanner boots and is detected",
+    "Windows SFC/DISM if communication/system instability",
+    "USB stack rebuild only if pure USB enumeration issue persists",
+    "SSHomeClean and fresh ScanSnap Home reinstall if software environment issue persists",
+    "model-specific recovery gate only if recovery symptoms confirmed",
+    "escalation/request template only after troubleshooting exhausted or supporter selects it"
+  ]
+}
