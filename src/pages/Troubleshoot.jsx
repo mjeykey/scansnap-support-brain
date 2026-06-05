@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
-import GuidedStepCard from '@/components/troubleshoot/GuidedStepCard';
 import BrainPanel from '@/components/troubleshoot/BrainPanel';
+import brainNeon from '@/assets/brain-neon.png';
 import { getSession, setSession, getSettings } from '@/lib/sessionStore';
 import { generateNextDynamicStep, runDecisionEngine } from '@/lib/decisionEngine';
 import { playAction, playSuccess } from '@/lib/sounds';
@@ -39,6 +39,163 @@ const pageStyle = {
   `,
   minHeight: '100vh',
 };
+
+
+const STEP_COPY = {
+  de: {
+    analyzing: 'Lumi analysiert',
+    checking: (title) => `Ich prüfe gerade ${title ? `„${title}“` : 'diesen Schritt'}.`,
+    suggestion: (name) => `${name || 'Marina'}, wie wäre es, wenn wir jetzt diesen Schritt zuerst sauber durchführen?`,
+    why: 'Das grenzt den Fehler schnell ein — und wenn dieser Test klappt, sind wir der Lösung schon ein gutes Stück näher.',
+    brainHint: 'Lumi ist bereit',
+    solved: 'Hat geholfen',
+    notPossible: 'Nicht möglich',
+    waiting: 'Warte auf Rückmeldung',
+  },
+  en: {
+    analyzing: 'Lumi is analysing',
+    checking: (title) => `I am checking ${title ? `“${title}”` : 'this step'} right now.`,
+    suggestion: (name) => `${name || 'Marina'}, how about we try this step cleanly first?`,
+    why: 'This narrows the issue down quickly — and if this test works, we are already much closer to the solution.',
+    brainHint: 'Lumi is ready',
+    solved: 'Solved',
+    notPossible: 'Not possible',
+    waiting: 'Waiting for feedback',
+  },
+};
+
+function getStepCopy(lang) {
+  return STEP_COPY[lang] || STEP_COPY.de;
+}
+
+function SoftGlowButton({ children, onClick, className = '', variant = 'soft' }) {
+  const base = 'rounded-full px-4 py-2 text-xs font-medium transition-all duration-300';
+  const styles = variant === 'gold'
+    ? 'text-amber-300 hover:text-amber-200 hover:bg-amber-400/10'
+    : variant === 'success'
+      ? 'text-primary hover:text-primary/90 hover:bg-primary/10'
+      : 'text-white/55 hover:text-white hover:bg-white/8';
+  return (
+    <button onClick={onClick} className={`${base} ${styles} ${className}`}>
+      {children}
+    </button>
+  );
+}
+
+function GuidedStepCard({ step, stepIndex, totalSteps, onResult, onResume, isWaiting }) {
+  const session = getSession();
+  const settings = getSettings();
+  const lang = (settings.emailLanguage || 'de').toLowerCase();
+  const copy = getStepCopy(lang);
+  const supporterName = session?.supporterName || 'Marina';
+
+  const title = step?.title || step?.instruction || step?.body || 'Troubleshooting step';
+  const instruction = step?.instruction || step?.body || '';
+  const difficulty = step?.difficulty || '';
+
+  const continueStep = () => {
+    if (isWaiting && onResume) {
+      onResume();
+      return;
+    }
+    onResult('not_solved', '');
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 18, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -12, scale: 0.98 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
+      className="relative mx-auto w-full max-w-[620px]"
+    >
+      <div className="absolute -inset-[1px] rounded-[2rem] bg-gradient-to-br from-primary/55 via-white/10 to-secondary/55 blur-[1px] opacity-80" />
+      <div
+        className="relative overflow-hidden rounded-[2rem] px-7 py-7 sm:px-9 sm:py-8"
+        style={{
+          background: 'linear-gradient(155deg, rgba(7,10,25,0.92), rgba(16,10,31,0.94) 58%, rgba(22,7,35,0.92))',
+          border: '1px solid rgba(255,255,255,0.08)',
+          boxShadow: '0 28px 80px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.05)',
+        }}
+      >
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute -top-28 left-1/2 h-56 w-56 -translate-x-1/2 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute -bottom-28 right-0 h-64 w-64 rounded-full bg-secondary/12 blur-3xl" />
+        </div>
+
+        <div className="relative z-10 flex items-start justify-between gap-4">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-primary/75">
+              {copy.analyzing} {stepIndex + 1} / {totalSteps}
+            </p>
+            {difficulty && (
+              <p className="mt-1 text-[10px] uppercase tracking-[0.18em] text-white/25">
+                {difficulty}
+              </p>
+            )}
+          </div>
+          <div className="h-8 w-8 rounded-full border border-white/10 bg-white/[0.03] flex items-center justify-center text-white/25">
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+          </div>
+        </div>
+
+        <div className="relative z-10 mt-7 text-center">
+          <h2 className="text-[1.65rem] sm:text-[1.9rem] leading-tight font-semibold text-white tracking-[-0.03em]">
+            {copy.checking(title)}
+          </h2>
+
+          <div className="mx-auto mt-5 max-w-[500px] space-y-3">
+            <p className="text-base sm:text-[1.05rem] leading-relaxed text-white/76">
+              {copy.suggestion(supporterName)}
+            </p>
+            {instruction && (
+              <p className="rounded-2xl border border-white/8 bg-white/[0.045] px-5 py-4 text-sm sm:text-[0.95rem] leading-relaxed text-white/68">
+                {instruction}
+              </p>
+            )}
+            <p className="text-sm leading-relaxed text-primary/75">
+              {copy.why}
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-col items-center">
+            <motion.button
+              type="button"
+              onClick={continueStep}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.96 }}
+              className="group relative h-24 w-24 rounded-full focus:outline-none focus:ring-2 focus:ring-primary/60 focus:ring-offset-2 focus:ring-offset-[#080816]"
+              aria-label="Lumi continue"
+            >
+              <span className="absolute inset-0 rounded-full bg-primary/20 blur-2xl opacity-70 group-hover:opacity-100 transition-opacity" />
+              <span className="absolute inset-2 rounded-full bg-secondary/20 blur-xl opacity-60 group-hover:opacity-90 transition-opacity" />
+              <img
+                src={brainNeon}
+                alt=""
+                className="relative z-10 h-full w-full object-contain drop-shadow-[0_0_22px_rgba(45,212,191,0.65)]"
+              />
+            </motion.button>
+            <p className="mt-3 text-[11px] uppercase tracking-[0.22em] text-white/30">
+              {copy.brainHint}
+            </p>
+          </div>
+
+          <div className="mt-7 flex flex-wrap items-center justify-center gap-2">
+            <SoftGlowButton variant="success" onClick={() => onResult('solved', '')}>
+              {copy.solved}
+            </SoftGlowButton>
+            <SoftGlowButton onClick={() => onResult('not_possible', '')}>
+              {copy.notPossible}
+            </SoftGlowButton>
+            <SoftGlowButton variant="gold" onClick={() => onResult('waiting_customer', '')}>
+              {copy.waiting}
+            </SoftGlowButton>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 
 export default function Troubleshoot() {
