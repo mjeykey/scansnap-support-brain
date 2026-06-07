@@ -53,41 +53,72 @@ const MISSING_INFO_LABELS = {
   }
 };
 
+function normalizeSupportLang(lang, session = {}) {
+  const raw = String(lang || session?.supportLanguage || session?.emailLanguage || session?.language || 'de').toLowerCase();
+  if (raw.startsWith('de')) return 'de';
+  if (raw.startsWith('en')) return 'en';
+  return raw || 'de';
+}
+
+function sanitizeMissingInfoEmailText(text, lang, session = {}) {
+  const l = normalizeSupportLang(lang, session);
+
+  // Remove fields that should not be requested for Level 4/customer missing-info emails.
+  let cleaned = String(text || '')
+    .replace(/\n-\s*Customer delivery address/gi, '')
+    .replace(/\n-\s*Customer country/gi, '')
+    .replace(/\n-\s*Warranty status confirmed/gi, '')
+    .replace(/\n-\s*Kundenadresse/gi, '')
+    .replace(/\n-\s*Land des Kunden/gi, '')
+    .replace(/\n-\s*Garantiestatus bestätigt/gi, '')
+    .replace(/\n-\s*Warranty status/gi, '')
+    .replace(/\n-\s*Customer address/gi, '');
+
+  // If the escalation/missing-info mail is still English while German is selected, rebuild it completely.
+  const looksLikeMissingInfo =
+    /missing information|additional information|next steps|escalation|weiteren schritte|fehlende informationen/i.test(cleaned);
+
+  if (l === 'de' && looksLikeMissingInfo && /Dear Customer|Thank you for your continued patience|To proceed with the next steps|Best regards|Kind regards/i.test(cleaned)) {
+    return buildMissingInfoEmail('de', session?.model || session?.device, session);
+  }
+
+  return cleaned;
+}
+
 function buildMissingInfoEmail(lang, model, session = {}) {
-  const l = (lang || session?.supportLanguage || session?.emailLanguage || 'de').toLowerCase();
+  const l = normalizeSupportLang(lang, session);
   const scanner = model || session?.model || session?.device || (l === 'de' ? 'Scanner' : 'scanner');
 
-  const isUsbCase = /usb|nicht erkannt|not detect|geräte-manager|device manager|0x80211001/i.test(
-    `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''}`
-  );
-  const isFirmwareCase = /firmware|update|recovery/i.test(`${session?.problem || ''} ${session?.issueType || ''}`);
+  const context = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.performedSteps || []).map(s => s.title || '').join(' ')}`;
+  const isUsbCase = /usb|nicht erkannt|not detect|geräte-manager|device manager|0x80211001/i.test(context);
+  const isFirmwareCase = /firmware|update|recovery/i.test(context);
 
-  const baseDe = [
+  const deItems = [
     'Verbindungstyp (USB / WLAN / LAN)',
     'Betriebssystem inklusive Version',
     'Scanner-Seriennummer',
     'Scananzahl / Lifetime Counter',
     'Screenshot der vollständigen Fehlermeldung',
+    'Aktuell installierte ScanSnap Home Version'
   ];
-  const baseEn = [
+
+  const enItems = [
     'Connectivity type (USB / Wi-Fi / LAN)',
     'Operating system including version',
     'Scanner serial number',
     'Scan count / Lifetime counter',
     'Screenshot of the full error message',
+    'Currently installed ScanSnap Home version'
   ];
 
   if (isUsbCase) {
-    baseDe.push('Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist');
-    baseEn.push('Screenshot or photo from Windows Device Manager showing the scanner or unknown device');
+    deItems.push('Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist');
+    enItems.push('Screenshot or photo from Windows Device Manager showing the scanner or unknown device');
   }
 
-  baseDe.push('Aktuell installierte ScanSnap Home Version');
-  baseEn.push('Currently installed ScanSnap Home version');
-
   if (isFirmwareCase) {
-    baseDe.push('Aktuell installierte Firmware-Version des Scanners');
-    baseEn.push('Currently installed scanner firmware version');
+    deItems.push('Aktuell installierte Firmware-Version des Scanners');
+    enItems.push('Currently installed scanner firmware version');
   }
 
   if (l === 'de') {
@@ -97,7 +128,7 @@ vielen Dank für Ihre Geduld, während wir den gemeldeten Fall zu Ihrem ${scanne
 
 Damit wir die nächsten Schritte korrekt einleiten können, benötigen wir bitte noch folgende Informationen:
 
-${baseDe.map(item => `- ${item}`).join('
+${deItems.map(item => `- ${item}`).join('
 ')}
 
 Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im bestehenden Vorgang dokumentiert bleiben und kein zusätzlicher Doppelvorgang entsteht. Wenn Sie uns telefonisch kontaktieren, nennen Sie bitte Ihre Fallnummer, damit wir Ihren bestehenden Vorgang direkt aufrufen können.
@@ -113,7 +144,7 @@ Thank you for your continued patience while we work to resolve the issue with yo
 
 To proceed with the next steps, we require the following additional information:
 
-${baseEn.map(item => `- ${item}`).join('
+${enItems.map(item => `- ${item}`).join('
 ')}
 
 Please reply directly to this email so all information remains documented in the existing case and no duplicate case is created. If you contact us by phone, please mention your case number so we can locate the existing case immediately.
@@ -191,7 +222,7 @@ function EmailBuilder({ session, brain, lang }) {
       console.error('Email generation failed:', err);
       text = assembleEmail(selected, lang, session?.supporterName || '', session);
     }
-    setEmailText(text);
+    setEmailText(sanitizeMissingInfoEmailText(text, lang, session));
     setBuilt(true);
   };
 
