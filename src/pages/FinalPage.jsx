@@ -125,6 +125,7 @@ function Section({ title, children, defaultOpen = true }) {
 function EmailBuilder({ session, brain, lang }) {
   const suggested = useMemo(() => suggestModules(session, brain), [session, brain]);
   const [selected, setSelected] = useState(suggested);
+  const [selectedScreenshotDetails, setSelectedScreenshotDetails] = useState(['error_message']);
   const [emailText, setEmailText] = useState('');
   const [built, setBuilt] = useState(false);
   const ui = getUI(lang);
@@ -139,6 +140,46 @@ function EmailBuilder({ session, brain, lang }) {
     troubleshooting: { de: 'Troubleshooting-Schritte', en: 'Troubleshooting Steps', fr: 'Étapes de dépannage', es: 'Pasos de resolución', pt: 'Etapas de resolução', it: 'Passaggi di risoluzione', nl: 'Probleemoplossing stappen', ja: 'トラブルシューティング手順', zh: '故障排除步骤' },
     request: { de: 'Informationsanfragen', en: 'Information Requests', fr: "Demandes d'informations", es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
     status: { de: 'Statusmeldungen', en: 'Status Messages', fr: 'Messages de statut', es: 'Mensajes de estado', pt: 'Mensagens de status', it: 'Messaggi di stato', nl: 'Statusberichten', ja: 'ステータスメッセージ', zh: '状态消息' },
+  };
+
+
+  const SCREENSHOT_DETAIL_OPTIONS = [
+    {
+      key: 'error_message',
+      label: { de: 'Fehlermeldung', en: 'Error message' },
+      text: { de: 'Screenshot der vollständigen Fehlermeldung', en: 'Screenshot of the full error message' },
+    },
+    {
+      key: 'device_manager',
+      label: { de: 'Geräte-Manager', en: 'Device Manager' },
+      text: { de: 'Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist', en: 'Screenshot or photo from Windows Device Manager showing the scanner or unknown device' },
+    },
+    {
+      key: 'scanner_display_led',
+      label: { de: 'Scanner-Display / LED', en: 'Scanner display / LED' },
+      text: { de: 'Foto des Scanner-Displays bzw. der aktuellen LED-Anzeige', en: 'Photo of the scanner display or current LED indicator' },
+    },
+    {
+      key: 'scanner_behavior_video',
+      label: { de: 'Kurzes Video', en: 'Short video' },
+      text: { de: 'Falls möglich, ein kurzes Video des Scannerverhaltens (max. 30 Sekunden)', en: 'If possible, a short video of the scanner behaviour (max. 30 seconds)' },
+    },
+    {
+      key: 'scansnap_home_screen',
+      label: { de: 'ScanSnap Home Fenster', en: 'ScanSnap Home screen' },
+      text: { de: 'Screenshot des betroffenen ScanSnap Home Fensters bzw. der Scanner-Informationen', en: 'Screenshot of the affected ScanSnap Home window or scanner information' },
+    },
+    {
+      key: 'scan_result',
+      label: { de: 'Scan-Ergebnis', en: 'Scan result' },
+      text: { de: 'Beispielscan oder Screenshot des fehlerhaften Scan-Ergebnisses', en: 'Sample scan or screenshot of the incorrect scan result' },
+    },
+  ];
+
+  const screenshotDetailText = (key) => {
+    const option = SCREENSHOT_DETAIL_OPTIONS.find(item => item.key === key);
+    if (!option) return '';
+    return option.text[lang] || option.text.de || option.text.en || '';
   };
 
   const moduleStepPatterns = {
@@ -258,9 +299,8 @@ function EmailBuilder({ session, brain, lang }) {
     }
 
     if (has('screenshot_request')) {
-      addUniqueLine(lines, isDe ? 'Screenshot der angezeigten Fehlermeldung' : 'Screenshot of the displayed error message');
-      addUniqueLine(lines, isDe ? 'Falls möglich, ein kurzes Video des Scannerverhaltens (max. 30 Sekunden)' : 'If possible, a short video of the scanner behaviour (max. 30 seconds)');
-      addUniqueLine(lines, isDe ? 'Foto der aktuellen LED-Anzeige des Scanners' : 'Photo of the current scanner LED indicator');
+      const activeScreenshotDetails = selectedScreenshotDetails.length ? selectedScreenshotDetails : ['error_message'];
+      activeScreenshotDetails.forEach(detailKey => addUniqueLine(lines, screenshotDetailText(detailKey)));
     }
 
     if (!lines.length) return '';
@@ -322,7 +362,18 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
   const toggle = (key) => {
     setSelected(prev => {
       const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      if (key === 'screenshot_request' && !prev.includes(key) && selectedScreenshotDetails.length === 0) {
+        setSelectedScreenshotDetails(['error_message']);
+      }
       if (built) setEmailText(buildSelectedEmail(next));
+      return next;
+    });
+  };
+
+  const toggleScreenshotDetail = (key) => {
+    setSelectedScreenshotDetails(prev => {
+      const next = prev.includes(key) ? prev.filter(item => item !== key) : [...prev, key];
+      if (built) setEmailText(buildSelectedEmail(selected));
       return next;
     });
   };
@@ -334,7 +385,7 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
 
   useEffect(() => {
     if (built) setEmailText(buildSelectedEmail(selected));
-  }, [selected, lang]);
+  }, [selected, selectedScreenshotDetails, lang]);
 
   const copy = () => { navigator.clipboard.writeText(emailText); toast.success('Email copied'); };
 
@@ -351,25 +402,53 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
               const isSelected = selected.includes(mod.key);
               const label = mod.label[lang] || mod.label['en'];
               return (
-                <button
-                  key={mod.key}
-                  onClick={() => toggle(mod.key)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all ${
-                    isSelected
-                      ? 'bg-primary/12 border border-primary/30'
-                      : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]'
-                  }`}
-                >
-                  <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
-                    isSelected ? 'bg-primary border-primary' : 'border-white/20'
-                  }`}>
-                    {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
-                  </div>
-                  <span className={`text-xs ${isSelected ? 'text-white/80' : 'text-white/40'}`}>{label}</span>
-                  {isSuggested && (
-                    <span className="ml-auto text-[9px] text-primary/60 uppercase tracking-wider shrink-0">suggested</span>
+                <React.Fragment key={mod.key}>
+                  <button
+                    onClick={() => toggle(mod.key)}
+                    className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all ${
+                      isSelected
+                        ? 'bg-primary/12 border border-primary/30'
+                        : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]'
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
+                      isSelected ? 'bg-primary border-primary' : 'border-white/20'
+                    }`}>
+                      {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
+                    </div>
+                    <span className={`text-xs ${isSelected ? 'text-white/80' : 'text-white/40'}`}>{label}</span>
+                    {isSuggested && (
+                      <span className="ml-auto text-[9px] text-primary/60 uppercase tracking-wider shrink-0">suggested</span>
+                    )}
+                  </button>
+
+                  {mod.key === 'screenshot_request' && isSelected && (
+                    <div className="ml-7 -mt-0.5 mb-2 rounded-xl border border-primary/15 bg-black/20 px-3 py-2 space-y-1.5">
+                      <p className="text-[9px] uppercase tracking-widest text-primary/55 mb-1">
+                        {isDe ? 'Screenshot-Untermenü' : 'Screenshot submenu'}
+                      </p>
+                      {SCREENSHOT_DETAIL_OPTIONS.map(option => {
+                        const checked = selectedScreenshotDetails.includes(option.key);
+                        const optionLabel = option.label[lang] || option.label.de || option.label.en;
+                        return (
+                          <button
+                            key={option.key}
+                            type="button"
+                            onClick={() => toggleScreenshotDetail(option.key)}
+                            className={`w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-left transition-all ${
+                              checked ? 'bg-primary/10 text-white/80' : 'text-white/38 hover:text-white/70 hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            <div className={`w-3.5 h-3.5 rounded border flex items-center justify-center shrink-0 ${checked ? 'bg-primary border-primary' : 'border-white/20'}`}>
+                              {checked && <CheckCircle2 className="w-2.5 h-2.5 text-white" />}
+                            </div>
+                            <span className="text-[11px]">{optionLabel}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
-                </button>
+                </React.Fragment>
               );
             })}
           </div>
