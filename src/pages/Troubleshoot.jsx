@@ -336,12 +336,15 @@ export default function Troubleshoot() {
                     <motion.img
                       src={brainNeon}
                       alt="Support Brain"
-                      className="mt-14 w-64 md:w-80 object-contain"
-                      animate={{ y: [0, -18, 0], scale: [1, 1.035, 1] }}
-                      transition={{ duration: 5.8, repeat: Infinity, ease: 'easeInOut' }}
+                      className="mt-14 w-72 md:w-96 object-contain"
+                      animate={{ y: [0, -26, 8, -18, 0], x: [0, 6, -5, 4, 0], rotate: [0, -1.5, 1.2, -0.8, 0], scale: [1, 1.055, 1.015, 1.04, 1] }}
+                      transition={{ duration: 4.8, repeat: Infinity, ease: 'easeInOut' }}
                       style={{
                         mixBlendMode: 'screen',
-                        filter: 'drop-shadow(0 0 46px rgba(45,212,191,0.72)) drop-shadow(0 0 100px rgba(236,72,153,0.52)) drop-shadow(0 0 140px rgba(80,110,255,0.35))'
+                        opacity: 0.92,
+                        WebkitMaskImage: 'radial-gradient(ellipse at center, black 0%, black 42%, rgba(0,0,0,0.82) 55%, rgba(0,0,0,0.35) 72%, transparent 94%)',
+                        maskImage: 'radial-gradient(ellipse at center, black 0%, black 42%, rgba(0,0,0,0.82) 55%, rgba(0,0,0,0.35) 72%, transparent 94%)',
+                        filter: 'brightness(1.04) contrast(1.08) drop-shadow(0 0 54px rgba(45,212,191,0.82)) drop-shadow(0 0 120px rgba(236,72,153,0.62)) drop-shadow(0 0 175px rgba(80,110,255,0.44))'
                       }}
                     />
 
@@ -380,18 +383,28 @@ export default function Troubleshoot() {
 
                     <motion.button
                       onClick={() => handleStepResult('not_solved')}
-                      className="group mt-16 inline-flex items-center justify-center bg-transparent border-0 p-0 rounded-full focus:outline-none"
+                      className="group mt-16 relative inline-flex items-center justify-center bg-transparent border-0 p-0 rounded-full focus:outline-none"
                       title={language === 'de' ? 'Nächsten Schritt öffnen' : 'Open next step'}
-                      animate={{ y: [0, -16, 0], scale: [1, 1.025, 1] }}
-                      transition={{ duration: 5.6, repeat: Infinity, ease: 'easeInOut' }}
+                      animate={{ y: [0, -30, 10, -20, 0], x: [0, 7, -6, 4, 0], rotate: [0, -1.8, 1.4, -1, 0], scale: [1, 1.065, 1.015, 1.045, 1] }}
+                      transition={{ duration: 4.6, repeat: Infinity, ease: 'easeInOut' }}
                     >
+                      <span
+                        aria-hidden="true"
+                        className="absolute inset-[-18%] rounded-full blur-3xl opacity-70"
+                        style={{
+                          background: 'radial-gradient(ellipse at center, rgba(45,212,191,0.30) 0%, rgba(236,72,153,0.22) 42%, transparent 72%)'
+                        }}
+                      />
                       <img
                         src={brainNeon}
                         alt="Continue"
-                        className="w-64 md:w-80 object-contain opacity-95 transition-transform duration-300 group-hover:scale-105"
+                        className="w-72 md:w-96 object-contain opacity-95 transition-transform duration-300 group-hover:scale-110"
                         style={{
-                          filter: 'drop-shadow(0 0 46px rgba(45,212,191,0.74)) drop-shadow(0 0 105px rgba(236,72,153,0.50)) drop-shadow(0 0 150px rgba(85,105,255,0.32))',
-                          mixBlendMode: 'screen'
+                          mixBlendMode: 'screen',
+                          opacity: 0.92,
+                          WebkitMaskImage: 'radial-gradient(ellipse at center, black 0%, black 42%, rgba(0,0,0,0.82) 55%, rgba(0,0,0,0.35) 72%, transparent 94%)',
+                          maskImage: 'radial-gradient(ellipse at center, black 0%, black 42%, rgba(0,0,0,0.82) 55%, rgba(0,0,0,0.35) 72%, transparent 94%)',
+                          filter: 'brightness(1.04) contrast(1.08) drop-shadow(0 0 58px rgba(45,212,191,0.86)) drop-shadow(0 0 130px rgba(236,72,153,0.62)) drop-shadow(0 0 185px rgba(85,105,255,0.45))'
                         }}
                       />
                     </motion.button>
