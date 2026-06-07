@@ -87,15 +87,22 @@ function isValidScannerModel(value) {
 }
 
 function isMeaningfulProblem(value) {
-  const text = String(value || '').trim().toLowerCase();
+  const raw = String(value || '').trim();
+  const text = raw.toLowerCase();
   if (text.length < 6) return false;
-  if (!/[aeiouäöüáéíóúàèìòùãõâêîôû]/i.test(text)) return false;
+
+  const compactLetters = text.replace(/[^a-zäöüáéíóúàèìòùãõâêîôû]/gi, '');
+  const vowelCount = (compactLetters.match(/[aeiouäöüáéíóúàèìòùãõâêîôû]/gi) || []).length;
+  const consonantOnlyNoise = compactLetters.length >= 5 && vowelCount === 0;
+  if (consonantOnlyNoise) return false;
 
   const words = text.split(/\s+/).filter(Boolean);
-  const issueWords = /(fehler|error|code|problem|scan|scanner|scannen|scannt|erkannt|detect|detection|verbindung|connect|usb|wlan|wifi|wi-fi|lan|netzwerk|network|ocr|pdf|install|installation|update|firmware|treiber|driver|twain|wia|paperstream|home|öffnet|startet|crash|freeze|hängt|stau|jam|papier|streifen|linie|balken|langsam|slow|noise|geräusch|funktioniert|nicht|kein|keine|no|not|missing|failed|failure)/i;
+  const issueWords = /(fehler|fehlermeldung|error|code|problem|scan|scanner|scannen|scannt|erkannt|erkennung|detect|detected|detection|verbindung|verbunden|connect|connection|usb|wlan|wifi|wi-fi|lan|netzwerk|network|ocr|pdf|install|installation|update|firmware|treiber|driver|twain|wia|paperstream|home|öffnet|startet|crash|freeze|hängt|abbruch|stau|jam|papier|streifen|linie|balken|qualität|quality|langsam|slow|noise|geräusch|funktioniert|nicht|kein|keine|no|not|missing|failed|failure|unbekannt|unknown|gerät|device)/i;
 
   if (issueWords.test(text)) return true;
-  return text.length >= 18 && words.length >= 3;
+  if (/\b(?:0x[0-9a-f]{4,}|-\d{1,4})\b/i.test(text) && /(code|fehler|error)/i.test(text)) return true;
+
+  return text.length >= 24 && words.length >= 4 && vowelCount >= 4;
 }
 
 function validationMessage(kind, lang) {
@@ -377,21 +384,20 @@ export default function Home() {
     }
 
     if (seedSteps.length === 0) {
-      const tempSession = {
-        problem: problem.trim(),
-        steps: [],
-        model: detectedModel,
-        device: detectedModel,
-        connectionType: connectionType || 'unknown',
-        os: '',
-      };
-      const dynamicSteps = [];
-      let nextStep = generateNextDynamicStep(tempSession, topEntry);
-      while (nextStep && dynamicSteps.length < 5) {
-        dynamicSteps.push({ ...nextStep, status: 'pending', result: '', note: '', timestamp: null, source: 'decision_engine' });
-        nextStep = generateNextDynamicStep({ ...tempSession, steps: dynamicSteps }, topEntry);
-      }
-      seedSteps = dynamicSteps;
+      seedSteps = [{
+        title: language === 'de' ? 'Fehlerbeschreibung präzisieren' : 'Clarify issue description',
+        instruction: language === 'de'
+          ? 'Lumi erkennt aus der Beschreibung noch keinen eindeutigen ScanSnap-Fehler. Bitte ergänze die konkrete Fehlermeldung, das Verhalten, das Betriebssystem und ob der Fehler bei USB, WLAN, Installation, OCR oder Scanqualität auftritt.'
+          : 'Lumi cannot identify a clear ScanSnap issue from the description yet. Please add the exact error message, behavior, operating system, and whether the issue occurs with USB, Wi-Fi, installation, OCR, or scan quality.',
+        difficulty: 'easy',
+        route: 'NEEDS_MORE_INFO',
+        order: 1,
+        status: 'pending',
+        result: '',
+        note: '',
+        timestamp: null,
+        source: 'validation_guard',
+      }];
     }
 
     const contextSession = {
@@ -561,17 +567,19 @@ export default function Home() {
                 )}
 
                 {step === 1 && (
-                  <input
-                    style={{ ...inputStyle, width: fieldWidthForStep(1), display: 'block', margin: '0 auto' }}
-                    value={model}
-                    onChange={(e) => setModel(e.target.value)}
-                    placeholder={tx(language, 'scannerPlaceholder')}
-                    autoFocus
-                    onKeyDown={(e) => { if (e.key === 'Enter') continueOrAnalyze(); }}
-                  />
-                  {model.trim() && !modelIsValid && (
-                    <p className="text-xs text-amber-300/85 text-center -mt-2">{validationMessage('model', language)}</p>
-                  )}
+                  <>
+                    <input
+                      style={{ ...inputStyle, width: fieldWidthForStep(1), display: 'block', margin: '0 auto' }}
+                      value={model}
+                      onChange={(e) => setModel(e.target.value)}
+                      placeholder={tx(language, 'scannerPlaceholder')}
+                      autoFocus
+                      onKeyDown={(e) => { if (e.key === 'Enter') continueOrAnalyze(); }}
+                    />
+                    {model.trim() && !modelIsValid && (
+                      <p className="text-xs text-amber-300/85 text-center -mt-2">{validationMessage('model', language)}</p>
+                    )}
+                  </>
                 )}
 
                 {step === 2 && (
