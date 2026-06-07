@@ -51,10 +51,40 @@ const CONNECTION_OPTIONS = [
   { value: 'unknown', label: 'Unbekannt' },
 ];
 
+
+const OS_OPTIONS = [
+  { value: 'windows', label: 'Windows' },
+  { value: 'macos', label: 'macOS' },
+  { value: 'ios', label: 'iOS' },
+  { value: 'android', label: 'Android' },
+  { value: 'windows_arm', label: 'Windows on ARM / Snapdragon' },
+  { value: 'macos_modern', label: 'Modernes Apple OS' },
+  { value: 'wifi_adapter_builtin', label: 'WLAN-Adapter / integriert' },
+  { value: 'unknown', label: 'Unbekannt' },
+];
+
+const SOURCE_OPTIONS = [
+  { value: 'phone', label: 'Telefon' },
+  { value: 'email', label: 'E-Mail' },
+  { value: 'live_chat', label: 'Live Chat' },
+  { value: 'webportal', label: 'Webportal' },
+  { value: 'self_registration_portal', label: 'Selbstregistrierungsportal' },
+  { value: 'online', label: 'Online' },
+];
+
+function osLabel(value) {
+  return OS_OPTIONS.find(o => o.value === value)?.label || value || 'Unbekannt';
+}
+
+function sourceLabel(value) {
+  return SOURCE_OPTIONS.find(o => o.value === value)?.label || value || 'Nicht angegeben';
+}
+
+
 const COPY = {
-  de: { hello:'Hallo 👋', nameQuestion:'Wie darf ich dich nennen?', namePlaceholder:'Name', scannerTitle:(n)=>`Hallo ${n||''} 👋`.trim(), scannerQuestion:'Mit welchem Scanner arbeiten wir heute?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Danke ${n||''}.`.trim(), connectionQuestion:'Wie ist der Scanner verbunden?', problemTitle:'Verstanden.', problemQuestion:'Was passiert aktuell?', problemPlaceholder:'Beschreibe kurz die Fehlermeldung oder das Verhalten…', ready:(m,c)=>`Ich prüfe ${m||'den Scanner'} über ${c||'die gewählte Verbindung'}.`, analyzing:'Ich prüfe die Wissensdatenbank…', back:'Zurück' },
-  en: { hello:'Hello 👋', nameQuestion:'What should I call you?', namePlaceholder:'Name', scannerTitle:(n)=>`Hello ${n||''} 👋`.trim(), scannerQuestion:'Which scanner are we working with today?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Thank you ${n||''}.`.trim(), connectionQuestion:'How is the scanner connected?', problemTitle:'Understood.', problemQuestion:'What is happening right now?', problemPlaceholder:'Briefly describe the error message or behavior…', ready:(m,c)=>`I will check ${m||'the scanner'} via ${c||'the selected connection'}.`, analyzing:'Checking the knowledge base…', back:'Back' },
-  pt: { hello:'Olá 👋', nameQuestion:'Como posso chamar-te?', namePlaceholder:'Nome', scannerTitle:(n)=>`Olá ${n||''} 👋`.trim(), scannerQuestion:'Com que scanner estamos a trabalhar hoje?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Obrigada ${n||''}.`.trim(), connectionQuestion:'Como está o scanner ligado?', problemTitle:'Entendido.', problemQuestion:'O que está a acontecer agora?', problemPlaceholder:'Descreve brevemente a mensagem de erro ou o comportamento…', ready:(m,c)=>`Vou verificar ${m||'o scanner'} via ${c||'a ligação selecionada'}.`, analyzing:'A verificar a base de conhecimento…', back:'Voltar' },
+  de: { hello:'Hallo 👋', nameQuestion:'Wie darf ich dich nennen?', namePlaceholder:'Name', sourceTitle:'Danke.', sourceQuestion:'Über welchen Kanal kam der Kontakt?', scannerTitle:(n)=>`Hallo ${n||''} 👋`.trim(), scannerQuestion:'Mit welchem ScanSnap arbeiten wir heute?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Danke ${n||''}.`.trim(), connectionQuestion:'Wie ist der Scanner verbunden?', osTitle:'Gut, nächster Punkt.', osQuestion:'Welches Betriebssystem / welche Umgebung nutzt der Kunde?', problemTitle:'Verstanden.', problemQuestion:'Was passiert aktuell?', problemPlaceholder:'Beschreibe kurz die Fehlermeldung oder das Verhalten…', ready:(m,c)=>`Ich prüfe ${m||'den Scanner'} über ${c||'die gewählte Verbindung'}.`, analyzing:'Ich prüfe die Wissensdatenbank…', back:'Zurück' },
+  en: { hello:'Hello 👋', nameQuestion:'What should I call you?', namePlaceholder:'Name', sourceTitle:'Thank you.', sourceQuestion:'Which channel did the contact come through?', scannerTitle:(n)=>`Hello ${n||''} 👋`.trim(), scannerQuestion:'Which ScanSnap are we working with today?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Thank you ${n||''}.`.trim(), connectionQuestion:'How is the scanner connected?', osTitle:'Good, next point.', osQuestion:'Which operating system / environment is the customer using?', problemTitle:'Understood.', problemQuestion:'What is happening right now?', problemPlaceholder:'Briefly describe the error message or behavior…', ready:(m,c)=>`I will check ${m||'the scanner'} via ${c||'the selected connection'}.`, analyzing:'Checking the knowledge base…', back:'Back' },
+  pt: { hello:'Olá 👋', nameQuestion:'Como posso chamar-te?', namePlaceholder:'Nome', sourceTitle:'Obrigada.', sourceQuestion:'Por que canal chegou o contacto?', scannerTitle:(n)=>`Olá ${n||''} 👋`.trim(), scannerQuestion:'Com que ScanSnap estamos a trabalhar hoje?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Obrigada ${n||''}.`.trim(), connectionQuestion:'Como está o scanner ligado?', osTitle:'Certo, próximo ponto.', osQuestion:'Que sistema operativo / ambiente o cliente usa?', problemTitle:'Entendido.', problemQuestion:'O que está a acontecer agora?', problemPlaceholder:'Descreve brevemente a mensagem de erro ou o comportamento…', ready:(m,c)=>`Vou verificar ${m||'o scanner'} via ${c||'a ligação selecionada'}.`, analyzing:'A verificar a base de conhecimento…', back:'Voltar' },
   es: { hello:'Hola 👋', nameQuestion:'¿Cómo debo llamarte?', namePlaceholder:'Nombre', scannerTitle:(n)=>`Hola ${n||''} 👋`.trim(), scannerQuestion:'¿Con qué escáner estamos trabajando hoy?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Gracias ${n||''}.`.trim(), connectionQuestion:'¿Cómo está conectado el escáner?', problemTitle:'Entendido.', problemQuestion:'¿Qué ocurre actualmente?', problemPlaceholder:'Describe brevemente el mensaje de error o el comportamiento…', ready:(m,c)=>`Voy a revisar ${m||'el escáner'} mediante ${c||'la conexión seleccionada'}.`, analyzing:'Consultando la base de conocimiento…', back:'Atrás' },
   fr: { hello:'Bonjour 👋', nameQuestion:'Comment puis-je t’appeler ?', namePlaceholder:'Nom', scannerTitle:(n)=>`Bonjour ${n||''} 👋`.trim(), scannerQuestion:'Avec quel scanner travaillons-nous aujourd’hui ?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Merci ${n||''}.`.trim(), connectionQuestion:'Comment le scanner est-il connecté ?', problemTitle:'Compris.', problemQuestion:'Que se passe-t-il actuellement ?', problemPlaceholder:'Décris brièvement le message d’erreur ou le comportement…', ready:(m,c)=>`Je vais vérifier ${m||'le scanner'} via ${c||'la connexion sélectionnée'}.`, analyzing:'Consultation de la base de connaissances…', back:'Retour' },
   it: { hello:'Ciao 👋', nameQuestion:'Come posso chiamarti?', namePlaceholder:'Nome', scannerTitle:(n)=>`Ciao ${n||''} 👋`.trim(), scannerQuestion:'Con quale scanner stiamo lavorando oggi?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Grazie ${n||''}.`.trim(), connectionQuestion:'Come è collegato lo scanner?', problemTitle:'Capito.', problemQuestion:'Che cosa sta succedendo ora?', problemPlaceholder:'Descrivi brevemente il messaggio di errore o il comportamento…', ready:(m,c)=>`Controllerò ${m||'lo scanner'} tramite ${c||'la connessione selezionata'}.`, analyzing:'Consulto la knowledge base…', back:'Indietro' },
@@ -127,7 +157,23 @@ const ROUTE_STEP_TRANSLATIONS = {
   USB_CONNECTION_3:{de:['Geräte-Manager-Erkennung prüfen','Im Windows-Geräte-Manager prüfen, ob der Scanner, ein unbekanntes Gerät oder ein USB-Gerät mit Warnsymbol erscheint.'],en:['Check Device Manager detection','Check Windows Device Manager for the scanner, an unknown device, or a USB device with warning symbol.'],pt:['Verificar no Gestor de Dispositivos','Verifica no Gestor de Dispositivos se aparece o scanner, um dispositivo desconhecido ou USB com aviso.'],es:['Comprobar en Administrador de dispositivos','Comprueba si aparece el escáner, un dispositivo desconocido o USB con advertencia.'],fr:['Vérifier dans le Gestionnaire de périphériques','Vérifie si le scanner, un périphérique inconnu ou USB avec avertissement apparaît.'],it:['Controllare in Gestione dispositivi','Verifica se compare lo scanner, un dispositivo sconosciuto o USB con avviso.'],nl:['Apparaatbeheer controleren','Controleer of de scanner, een onbekend apparaat of USB-apparaat met waarschuwing zichtbaar is.'],ja:['デバイスマネージャーで確認','スキャナー、不明なデバイス、または警告付きUSBデバイスが表示されるか確認してください。']},
   USB_CONNECTION_4:{de:['Scanner in ScanSnap Home entfernen und erneut verbinden','Scanner aus ScanSnap Home entfernen und danach erneut per direktem USB verbinden.'],en:['Remove and reconnect scanner in ScanSnap Home','Remove the scanner from ScanSnap Home and reconnect it via direct USB.'],pt:['Remover e voltar a ligar no ScanSnap Home','Remove o scanner do ScanSnap Home e volta a ligá-lo por USB direto.'],es:['Eliminar y reconectar en ScanSnap Home','Elimina el escáner en ScanSnap Home y vuelve a conectarlo por USB directo.'],fr:['Supprimer et reconnecter dans ScanSnap Home','Supprime le scanner dans ScanSnap Home puis reconnecte-le en USB direct.'],it:['Rimuovere e ricollegare in ScanSnap Home','Rimuovi lo scanner da ScanSnap Home e ricollegalo via USB diretto.'],nl:['Scanner verwijderen en opnieuw verbinden','Verwijder de scanner uit ScanSnap Home en verbind opnieuw via directe USB.'],ja:['ScanSnap Homeで削除して再接続','ScanSnap Homeからスキャナーを削除し、USB直接接続で再接続してください。']},
   USB_CONNECTION_5:{de:['ScanSnap Home bereinigen und neu installieren','ScanSnap Home vollständig bereinigen, Computer neu starten und aktuelle Version mit Administratorrechten installieren.'],en:['Clean up and reinstall ScanSnap Home','Fully clean ScanSnap Home, restart the computer, and install the latest version with administrator rights.'],pt:['Limpar e reinstalar ScanSnap Home','Limpa completamente o ScanSnap Home, reinicia o computador e instala a versão atual como administrador.'],es:['Limpiar y reinstalar ScanSnap Home','Limpia ScanSnap Home completamente, reinicia el ordenador e instala la versión actual como administrador.'],fr:['Nettoyer et réinstaller ScanSnap Home','Nettoie complètement ScanSnap Home, redémarre l’ordinateur et installe la version actuelle comme administrateur.'],it:['Pulire e reinstallare ScanSnap Home','Pulisci completamente ScanSnap Home, riavvia il computer e installa la versione attuale come amministratore.'],nl:['ScanSnap Home opschonen en opnieuw installeren','Schoon ScanSnap Home volledig op, herstart de computer en installeer de nieuwste versie als administrator.'],ja:['ScanSnap Homeをクリーンアップして再インストール','ScanSnap Homeを完全にクリーンアップし、PCを再起動して最新版を管理者権限でインストールしてください。']},
-  USB_CONNECTION_6:{de:['Windows-Systemintegrität prüfen (SFC/DISM)','Erst nach USB-, Geräte-Manager- und ScanSnap-Home-Prüfung SFC/DISM ausführen.'],en:['Check Windows system integrity (SFC/DISM)','Run SFC/DISM only after USB, Device Manager, and ScanSnap Home checks.'],pt:['Verificar integridade do Windows (SFC/DISM)','Executa SFC/DISM só depois das verificações USB, Gestor de Dispositivos e ScanSnap Home.'],es:['Comprobar Windows (SFC/DISM)','Ejecuta SFC/DISM solo después de comprobar USB, Administrador de dispositivos y ScanSnap Home.'],fr:['Vérifier Windows (SFC/DISM)','Lance SFC/DISM seulement après les contrôles USB, Gestionnaire de périphériques et ScanSnap Home.'],it:['Verificare Windows (SFC/DISM)','Esegui SFC/DISM solo dopo controlli USB, Gestione dispositivi e ScanSnap Home.'],nl:['Windows controleren (SFC/DISM)','Voer SFC/DISM pas uit na USB-, Apparaatbeheer- en ScanSnap Home-controles.'],ja:['Windows整合性を確認（SFC/DISM）','USB、デバイスマネージャー、ScanSnap Home確認後にのみSFC/DISMを実行してください。']}
+  USB_CONNECTION_6:{de:['Windows-Systemintegrität prüfen (SFC/DISM)','Erst nach USB-, Geräte-Manager- und ScanSnap-Home-Prüfung SFC/DISM ausführen.'],en:['Check Windows system integrity (SFC/DISM)','Run SFC/DISM only after USB, Device Manager, and ScanSnap Home checks.'],pt:['Verificar integridade do Windows (SFC/DISM)','Executa SFC/DISM só depois das verificações USB, Gestor de Dispositivos e ScanSnap Home.'],es:['Comprobar Windows (SFC/DISM)','Ejecuta SFC/DISM solo después de comprobar USB, Administrador de dispositivos y ScanSnap Home.'],fr:['Vérifier Windows (SFC/DISM)','Lance SFC/DISM seulement après les contrôles USB, Gestionnaire de périphériques et ScanSnap Home.'],it:['Verificare Windows (SFC/DISM)','Esegui SFC/DISM solo dopo controlli USB, Gestione dispositivi e ScanSnap Home.'],nl:['Windows controleren (SFC/DISM)','Voer SFC/DISM pas uit na USB-, Apparaatbeheer- en ScanSnap Home-controles.'],ja:['Windows整合性を確認（SFC/DISM）','USB、デバイスマネージャー、ScanSnap Home確認後にのみSFC/DISMを実行してください。']},
+
+  WIFI_CONNECTION_1:{de:['WLAN-Status am Scanner prüfen','Prüfen Sie zuerst, ob der Scanner mit dem WLAN verbunden ist und ob am Scanner ein WLAN-Status bzw. eine Verbindung angezeigt wird.'],en:['Check Wi-Fi status on the scanner','First check whether the scanner is connected to Wi-Fi and whether a Wi-Fi status or connection is shown on the scanner.'],pt:['Verificar o estado do Wi‑Fi no scanner','Verifica primeiro se o scanner está ligado ao Wi‑Fi e se o scanner mostra um estado de Wi‑Fi ou ligação.']},
+  WIFI_CONNECTION_2:{de:['Scanner und Computer im selben Netzwerk prüfen','Stellen Sie sicher, dass Scanner und Computer im selben Netzwerk bzw. Subnetz sind. Prüfen Sie bei Bedarf die IP-Adresse des Scanners.'],en:['Check scanner and computer are on the same network','Make sure scanner and computer are on the same network or subnet. If needed, check the scanner IP address.'],pt:['Verificar se scanner e computador estão na mesma rede','Confirma se o scanner e o computador estão na mesma rede ou sub-rede. Se necessário, verifica o endereço IP do scanner.']},
+  WIFI_CONNECTION_3:{de:['Router / 2,4-GHz-Netzwerk prüfen','Prüfen Sie Routereinstellungen wie 2,4 GHz, Band Steering, Client Isolation und Firewall-Regeln. Starten Sie Router, Scanner und Computer anschließend neu.'],en:['Check router / 2.4 GHz network','Check router settings such as 2.4 GHz, band steering, client isolation and firewall rules. Then restart router, scanner and computer.'],pt:['Verificar router / rede de 2,4 GHz','Verifica definições do router como 2,4 GHz, band steering, isolamento de clientes e regras de firewall. Depois reinicia o router, o scanner e o computador.']},
+  WIFI_CONNECTION_4:{de:['Hotspot- oder Direktverbindungstest durchführen','Testen Sie den Scanner in einem einfachen alternativen Netzwerk, z. B. über einen mobilen Hotspot oder Direktverbindungsmodus, um Router- oder Netzwerkeinflüsse auszuschließen.'],en:['Perform hotspot or direct connection test','Test the scanner in a simple alternate network, e.g. mobile hotspot or direct connection mode, to exclude router or network influence.'],pt:['Testar hotspot ou ligação direta','Testa o scanner numa rede alternativa simples, por exemplo hotspot móvel ou modo de ligação direta, para excluir influência do router ou da rede.']},
+
+  FIRMWARE_USB_1:{de:['Direkte USB-Verbindung für Firmwareprüfung sicherstellen','Stellen Sie sicher, dass der Scanner direkt per USB mit dem Computer verbunden ist. Firmwareprüfungen oder Firmwareupdates sollten nicht über WLAN durchgeführt werden.'],en:['Ensure direct USB connection for firmware check','Make sure the scanner is connected directly to the computer via USB. Firmware checks or updates should not be performed via Wi-Fi.'],pt:['Garantir ligação USB direta para verificar o firmware','Garante que o scanner está ligado diretamente ao computador por USB. Verificações ou atualizações de firmware não devem ser feitas por Wi‑Fi.']},
+  FIRMWARE_USB_2:{de:['Startzustand des Scanners prüfen','Prüfen Sie, ob der Scanner normal startet, auf einem Logo hängen bleibt oder eine Fehlermeldung/LED-Anzeige zeigt.'],en:['Check scanner startup state','Check whether the scanner starts normally, gets stuck on a logo, or shows an error/LED indication.'],pt:['Verificar o estado de arranque do scanner','Verifica se o scanner arranca normalmente, fica preso no logótipo ou mostra uma mensagem de erro/indicação LED.']},
+  FIRMWARE_USB_3:{de:['Firmwareupdate über ScanSnap Home prüfen','Wenn der Scanner normal startet und erkannt wird, prüfen Sie in ScanSnap Home unter Scanner-Informationen, ob ein Firmwareupdate angeboten wird. Führen Sie es nur über direkte USB-Verbindung aus.'],en:['Check firmware update via ScanSnap Home','If the scanner starts normally and is detected, check Scanner Information in ScanSnap Home for an available firmware update. Run it only via direct USB connection.'],pt:['Verificar atualização de firmware pelo ScanSnap Home','Se o scanner arrancar normalmente e for detetado, verifica em ScanSnap Home nas informações do scanner se há uma atualização de firmware disponível. Executa-a apenas por ligação USB direta.']},
+  FIRMWARE_USB_4:{de:['ScanSnap Home bereinigen und neu installieren','Wenn das Firmwareupdate nicht korrekt abgeschlossen wird oder wiederholt angeboten wird, bereinigen Sie ScanSnap Home vollständig und installieren Sie es anschließend neu.'],en:['Clean up and reinstall ScanSnap Home','If the firmware update does not complete correctly or is repeatedly offered, clean up ScanSnap Home completely and then reinstall it.'],pt:['Limpar e reinstalar o ScanSnap Home','Se a atualização de firmware não terminar corretamente ou voltar a ser oferecida, limpa completamente o ScanSnap Home e reinstala-o.']},
+  FIRMWARE_USB_5:{de:['Firmware-Recovery nur bei bestätigtem Recovery-Zustand vorbereiten','Ein Firmware-Recovery-Schritt sollte erst erfolgen, wenn der Startzustand und die USB-Erkennung geprüft wurden und die Symptome zu einem Recovery-Fall passen.'],en:['Prepare firmware recovery only if recovery state is confirmed','Firmware recovery should only be performed once startup state and USB detection have been checked and the symptoms fit a recovery case.'],pt:['Preparar recovery de firmware só se o estado de recovery estiver confirmado','O recovery de firmware só deve ser feito depois de verificar o estado de arranque e a deteção USB, e apenas se os sintomas forem compatíveis com um caso de recovery.']},
+
+  OCR_ERROR_1:{de:['Testscan ohne OCR durchführen','Führen Sie zuerst einen Testscan ohne OCR/Texterkennung durch. So lässt sich prüfen, ob der Fehler im Scanprozess selbst oder im OCR-/Image-Processing liegt.'],en:['Perform test scan without OCR','First perform a test scan without OCR/text recognition. This helps determine whether the issue is in scanning itself or in OCR/image processing.'],pt:['Fazer um teste sem OCR','Faz primeiro um teste sem OCR/reconhecimento de texto. Assim conseguimos perceber se o erro está no processo de digitalização ou no OCR/processamento de imagem.']},
+  OCR_ERROR_2:{de:['ScanSnap Home Cache und temporäre Dateien bereinigen','Schließen Sie ScanSnap Home und bereinigen Sie Cache-, Temp- und Image-Processing-Dateien. Starten Sie danach den Computer neu und testen Sie erneut.'],en:['Clean ScanSnap Home cache and temporary files','Close ScanSnap Home and clean cache, temp and image-processing files. Then restart the computer and test again.'],pt:['Limpar cache e ficheiros temporários do ScanSnap Home','Fecha o ScanSnap Home e limpa ficheiros de cache, temporários e de processamento de imagem. Depois reinicia o computador e testa novamente.']},
+  OCR_ERROR_3:{de:['OCR erneut mit kleinem Testdokument prüfen','Aktivieren Sie OCR wieder und testen Sie zunächst mit einem kleinen einfachen Dokument. Wenn nur OCR fehlschlägt, wird der OCR-/Kofax-Pfad weiter geprüft.'],en:['Test OCR again with a small test document','Enable OCR again and first test with a small simple document. If only OCR fails, continue checking the OCR path.'],pt:['Testar OCR novamente com um documento pequeno','Ativa novamente o OCR e testa primeiro com um documento pequeno e simples. Se apenas o OCR falhar, continuamos a verificar o caminho de OCR.']},
+
 };
 
 function localizeRouteStep(step, key, lang) {
@@ -210,7 +256,7 @@ function background() {
 function ProgressDots({ step }) {
   return (
     <div className="flex items-center justify-center gap-2 mb-5">
-      {[0, 1, 2, 3].map((i) => (
+      {[0, 1, 2, 3, 4, 5].map((i) => (
         <div
           key={i}
           className={`rounded-full transition-all duration-300 ${i === step ? 'w-8 h-2 bg-fuchsia-400' : i < step ? 'w-2 h-2 bg-cyan-300/70' : 'w-2 h-2 bg-white/15'}`}
@@ -303,11 +349,11 @@ function looksLikeProblemText(value) {
 
 function validationMessage(step, language) {
   if (language === 'de') {
-    if (step === 1) return 'Bitte geben Sie eine echte ScanSnap-Modellbezeichnung ein, z. B. iX1600, iX1400, iX2500, iX500, S1300i oder SV600.';
-    if (step === 3) return 'Bitte geben Sie eine echte Fehlerbeschreibung ein, z. B. Fehlermeldung, Verhalten, Verbindung oder was genau nicht funktioniert. Zufällige Buchstaben wie csdfrx werden nicht akzeptiert.';
+    if (step === 2) return 'Bitte geben Sie eine echte ScanSnap-Modellbezeichnung ein, z. B. iX1600, iX1400, iX2500, iX500, S1300i oder SV600.';
+    if (step === 5) return 'Bitte geben Sie eine echte Fehlerbeschreibung ein, z. B. Fehlermeldung, Verhalten, Verbindung oder was genau nicht funktioniert. Zufällige Buchstaben wie csdfrx werden nicht akzeptiert.';
   }
-  if (step === 1) return 'Please enter a real ScanSnap model, e.g. iX1600, iX1400, iX2500, iX500, S1300i or SV600.';
-  if (step === 3) return 'Please enter a real issue description, e.g. error message, behaviour, connection or what exactly is not working. Random letters like csdfrx are not accepted.';
+  if (step === 2) return 'Please enter a real ScanSnap model, e.g. iX1600, iX1400, iX2500, iX500, S1300i or SV600.';
+  if (step === 5) return 'Please enter a real issue description, e.g. error message, behaviour, connection or what exactly is not working. Random letters like csdfrx are not accepted.';
   return '';
 }
 
@@ -320,8 +366,10 @@ export default function Home() {
   const [step, setStep] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [supporterName, setSupporterName] = useState(existingSession.supporterName || '');
+  const [contactSource, setContactSource] = useState(existingSession.contactSource || existingSession.source || '');
   const [model, setModel] = useState(existingSession.model || '');
   const [connectionType, setConnectionType] = useState(existingSession.connectionType && existingSession.connectionType !== 'unknown' ? existingSession.connectionType : '');
+  const [osType, setOsType] = useState(existingSession.osType || existingSession.os || '');
   const [problem, setProblem] = useState(existingSession.problem || '');
 
   const detected = useMemo(() => detectModelFromText(`${model} ${problem}`), [model, problem]);
@@ -332,11 +380,13 @@ export default function Home() {
 
   const currentValid =
     step === 0 ? supporterName.trim().length > 0 :
-    step === 1 ? modelIsValid :
-    step === 2 ? !!connectionType :
+    step === 1 ? !!contactSource :
+    step === 2 ? modelIsValid :
+    step === 3 ? !!connectionType :
+    step === 4 ? !!osType :
     problemIsValid;
 
-  const readyForAnalysis = supporterName.trim() && modelIsValid && connectionType && problemIsValid;
+  const readyForAnalysis = supporterName.trim() && contactSource && modelIsValid && connectionType && osType && problemIsValid;
 
   const handleLanguage = (value) => {
     setLanguage(value);
@@ -352,7 +402,7 @@ export default function Home() {
       if (msg) window.alert(msg);
       return;
     }
-    if (step < 3) {
+    if (step < 5) {
       setStep((s) => s + 1);
       return;
     }
@@ -409,7 +459,10 @@ export default function Home() {
         model: detectedModel,
         device: detectedModel,
         connectionType: connectionType || 'unknown',
-        os: '',
+        os: osLabel(osType),
+        osType,
+        contactSource,
+        source: contactSource,
       };
       const dynamicSteps = [];
       let nextStep = generateNextDynamicStep(tempSession, topEntry);
@@ -424,6 +477,10 @@ export default function Home() {
       model: detectedModel,
       device: detectedModel,
       connectionType,
+      os: osLabel(osType),
+      osType,
+      contactSource,
+      source: contactSource,
       problem: problem.trim(),
       issueType: classifyIssueCategory(enrichedProblem, topEntry),
     };
@@ -448,7 +505,7 @@ export default function Home() {
 
   const handleAnalyze = () => {
     if (!readyForAnalysis || analyzing) {
-      const msg = validationMessage(!modelIsValid ? 1 : !problemIsValid ? 3 : step, language);
+      const msg = validationMessage(!modelIsValid ? 2 : !problemIsValid ? 5 : step, language);
       if (msg) window.alert(msg);
       return;
     }
@@ -456,7 +513,7 @@ export default function Home() {
     updateSettings({ emailLanguage: language });
 
     const detectedModel = modelValue;
-    const enrichedProblem = [detectedModel, connectionType, problem.trim()].filter(Boolean).join(' ');
+    const enrichedProblem = [detectedModel, connectionType, osLabel(osType), problem.trim()].filter(Boolean).join(' ');
     const plainError5 = isPlainError5Case(problem.trim());
     const kbResults = plainError5 ? [] : searchKnowledgeBase(enrichedProblem, detectedModel, '');
     const topEntry = kbResults[0] || null;
@@ -473,10 +530,18 @@ export default function Home() {
         supporterName: supporterName.trim(),
         model: detectedModel,
         connectionType,
+        os: osLabel(osType),
+        osType,
+        contactSource,
+        source: contactSource,
       },
       model: detectedModel,
       device: detectedModel,
       connectionType: connectionType || 'unknown',
+      os: osLabel(osType),
+      osType,
+      contactSource,
+      source: contactSource,
       requestAi: false,
       status: 'troubleshooting',
       issueType,
@@ -519,13 +584,17 @@ export default function Home() {
   };
 
   const title = step === 0 ? tx(language, 'hello')
-    : step === 1 ? tx(language, 'scannerTitle', supporterName.trim())
-    : step === 2 ? tx(language, 'connectionTitle', supporterName.trim())
+    : step === 1 ? tx(language, 'sourceTitle')
+    : step === 2 ? tx(language, 'scannerTitle', supporterName.trim())
+    : step === 3 ? tx(language, 'connectionTitle', supporterName.trim())
+    : step === 4 ? tx(language, 'osTitle')
     : tx(language, 'problemTitle');
 
   const question = step === 0 ? tx(language, 'nameQuestion')
-    : step === 1 ? tx(language, 'scannerQuestion')
-    : step === 2 ? tx(language, 'connectionQuestion')
+    : step === 1 ? tx(language, 'sourceQuestion')
+    : step === 2 ? tx(language, 'scannerQuestion')
+    : step === 3 ? tx(language, 'connectionQuestion')
+    : step === 4 ? tx(language, 'osQuestion')
     : tx(language, 'problemQuestion');
 
   return (
@@ -591,6 +660,21 @@ export default function Home() {
                 )}
 
                 {step === 1 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {SOURCE_OPTIONS.map((s) => (
+                      <button
+                        key={s.value}
+                        onClick={() => setContactSource(s.value)}
+                        className={`rounded-2xl px-4 py-4 text-sm text-center transition-all ${contactSource === s.value ? 'bg-fuchsia-500/18 border-fuchsia-400/70 text-white shadow-[0_0_28px_rgba(255,45,170,0.22)]' : 'bg-black/20 border-cyan-300/18 text-white/76 hover:bg-cyan-400/8 hover:border-cyan-300/45'}`}
+                        style={{ borderWidth: 1 }}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {step === 2 && (
                   <input
                     style={{ ...inputStyle, width: fieldWidthForStep(1), display: 'block', margin: '0 auto' }}
                     value={model}
@@ -601,7 +685,7 @@ export default function Home() {
                   />
                 )}
 
-                {step === 2 && (
+                {step === 3 && (
                   <div className="grid grid-cols-2 gap-3">
                     {CONNECTION_OPTIONS.map((c) => (
                       <button
@@ -616,7 +700,22 @@ export default function Home() {
                   </div>
                 )}
 
-                {step === 3 && (
+                {step === 4 && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {OS_OPTIONS.map((o) => (
+                      <button
+                        key={o.value}
+                        onClick={() => setOsType(o.value)}
+                        className={`rounded-2xl px-4 py-4 text-sm text-center transition-all ${osType === o.value ? 'bg-fuchsia-500/18 border-fuchsia-400/70 text-white shadow-[0_0_28px_rgba(255,45,170,0.22)]' : 'bg-black/20 border-cyan-300/18 text-white/76 hover:bg-cyan-400/8 hover:border-cyan-300/45'}`}
+                        style={{ borderWidth: 1 }}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                {step === 5 && (
                   <>
                     <textarea
                       value={problem}

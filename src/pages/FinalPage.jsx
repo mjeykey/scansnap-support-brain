@@ -120,6 +120,48 @@ function Section({ title, children, defaultOpen = true }) {
   );
 }
 
+
+function sourceOpening(session, lang = 'de') {
+  const source = session?.contactSource || session?.source || session?.knownFacts?.contactSource || 'email';
+  const isEn = String(lang).toLowerCase().startsWith('en');
+  const isPt = String(lang).toLowerCase().startsWith('pt');
+
+  if (isPt) {
+    const map = {
+      phone: 'Obrigado pelo seu telefonema para o PFU Support hoje.',
+      email: 'Obrigado pelo seu e-mail.',
+      live_chat: 'Obrigado pelo contacto através do Live Chat.',
+      webportal: 'Obrigado pelo seu pedido através do Webportal.',
+      self_registration_portal: 'Obrigado pelo seu pedido através do portal de autorregisto.',
+      online: 'Obrigado pelo seu pedido online.',
+    };
+    return `Bom dia,\n\n${map[source] || map.email}`;
+  }
+
+  if (isEn) {
+    const map = {
+      phone: 'Thank you for calling PFU Support today.',
+      email: 'Thank you for your email.',
+      live_chat: 'Thank you for contacting us via Live Chat.',
+      webportal: 'Thank you for your request via the web portal.',
+      self_registration_portal: 'Thank you for your request via the self-registration portal.',
+      online: 'Thank you for your online request.',
+    };
+    return `Hello,\n\n${map[source] || map.email}`;
+  }
+
+  const map = {
+    phone: 'Vielen Dank für Ihren Anruf beim PFU Support heute.',
+    email: 'vielen Dank für Ihre E-Mail.',
+    live_chat: 'vielen Dank für den Kontakt über den Live Chat.',
+    webportal: 'vielen Dank für Ihre Anfrage über das Webportal.',
+    self_registration_portal: 'vielen Dank für Ihre Anfrage über das Selbstregistrierungsportal.',
+    online: 'vielen Dank für Ihre Online-Anfrage.',
+  };
+  return `Guten Tag,\n\n${map[source] || map.email}`;
+}
+
+
 // ── Email Module Builder ─────────────────────────────────────
 
 function EmailBuilder({ session, brain, lang }) {
@@ -333,10 +375,7 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
     const model = session?.model || session?.device || session?.knownFacts?.model || (isDe ? 'Scanner' : 'scanner');
 
     const parts = [];
-    parts.push(isDe
-      ? 'Guten Tag,\n\nvielen Dank für Ihre Rückmeldung.'
-      : 'Hello,\n\nThank you for your feedback.'
-    );
+    parts.push(sourceOpening(session, lang));
 
     const analysisLines = analysisLinesForSelected(unique);
     if (analysisLines.length) {
@@ -510,6 +549,8 @@ function LocalCaseSummary({ session, lang }) {
   const model = session?.model || session?.device || session?.knownFacts?.model || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
   const issue = session?.problem || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
   const connection = session?.connectionType || session?.knownFacts?.connectionType || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
+  const osInfo = session?.os || session?.osType || session?.knownFacts?.os || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
+  const sourceInfo = session?.contactSource || session?.source || session?.knownFacts?.contactSource || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
 
   const visible = steps.filter(s => s.status && s.status !== 'pending');
   const solved = steps.find(s => s.status === 'solved');
@@ -565,6 +606,8 @@ function LocalCaseSummary({ session, lang }) {
     lines.push(`${H.customer}: ${issue}`);
     lines.push(`${H.product}: ${model}`);
     lines.push(`${H.connection}: ${connection}`);
+    lines.push(`${H.os}: ${osInfo}`);
+    lines.push(`${H.source}: ${sourceInfo}`);
     lines.push('');
     lines.push(H.action);
 
@@ -583,10 +626,10 @@ function LocalCaseSummary({ session, lang }) {
       lines.push(isEn ? `Awaiting customer response regarding: ${cleanTitle(waiting, 'en')}.` : isPt ? `A aguardar resposta do cliente sobre: ${cleanTitle(waiting, 'pt')}.` : `Warten auf Kundenrückmeldung zu: ${cleanTitle(waiting, 'de')}.`);
     } else if (failed.length >= 3) {
       lines.push(isEn
-        ? 'The documented troubleshooting did not resolve the issue. Next step: remote session, escalation, or hardware process depending on the case context.'
+        ? 'The documented troubleshooting did not resolve the issue. Next step: remote session or escalation depending on the case context.'
         : isPt
-          ? 'Os passos documentados não resolveram o problema. Próximo passo: sessão remota, escalamento ou processo de hardware, dependendo do contexto do caso.'
-          : 'Die dokumentierten Maßnahmen haben das Problem nicht behoben. Nächster Schritt: Remote-Session, Eskalation oder Hardwareprozess je nach Fallkontext.');
+          ? 'Os passos documentados não resolveram o problema. Próximo passo: sessão remota ou escalamento, dependendo do contexto do caso.'
+          : 'Die dokumentierten Maßnahmen haben das Problem nicht behoben. Nächster Schritt: Remote-Session oder Eskalation je nach Fallkontext.');
     } else {
       lines.push(H.progress);
     }
@@ -799,10 +842,6 @@ export default function FinalPage() {
         {/* Escalation — always available, dropdown-template based */}
         <Section title={ui.prepare_escalation || 'Escalation / Request'} defaultOpen={false}>
           <EscalationForm steps={steps} kbEntry={session.kbEntry} session={session} />
-        </Section>
-
-        <Section title={lang === 'en' ? 'Hardware Process / Advance Exchange' : 'Hardwareprozess / Advance Exchange'} defaultOpen={false}>
-          <HardwareProcessPanel session={session} lang={lang} />
         </Section>
 
         {/* Save to KB */}
