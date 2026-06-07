@@ -78,6 +78,52 @@ function normalizeModelInput(value) {
   return (value || '').trim().replace(/^ix/i, 'iX');
 }
 
+const KNOWN_SCANNER_MODEL_RE = /^(?:ix\s*-?\s*(?:100|1300|1400|1500|1600|2500|500)|sv\s*-?\s*600|s\s*-?\s*(?:1100|1300i?)|fi\s*-?\s*\d{3,4}[a-z0-9-]*|sp\s*-?\s*\d{3,4}[a-z0-9-]*|n\s*-?\s*7100e?)$/i;
+
+function isValidScannerModel(value) {
+  const cleaned = String(value || '').trim();
+  if (!cleaned) return false;
+  return KNOWN_SCANNER_MODEL_RE.test(cleaned.replace(/\s+/g, '')) || KNOWN_SCANNER_MODEL_RE.test(cleaned);
+}
+
+function isMeaningfulProblem(value) {
+  const text = String(value || '').trim().toLowerCase();
+  if (text.length < 6) return false;
+  if (!/[aeiouäöüáéíóúàèìòùãõâêîôû]/i.test(text)) return false;
+
+  const words = text.split(/\s+/).filter(Boolean);
+  const issueWords = /(fehler|error|code|problem|scan|scanner|scannen|scannt|erkannt|detect|detection|verbindung|connect|usb|wlan|wifi|wi-fi|lan|netzwerk|network|ocr|pdf|install|installation|update|firmware|treiber|driver|twain|wia|paperstream|home|öffnet|startet|crash|freeze|hängt|stau|jam|papier|streifen|linie|balken|langsam|slow|noise|geräusch|funktioniert|nicht|kein|keine|no|not|missing|failed|failure)/i;
+
+  if (issueWords.test(text)) return true;
+  return text.length >= 18 && words.length >= 3;
+}
+
+function validationMessage(kind, lang) {
+  const messages = {
+    model: {
+      de: 'Bitte gib ein echtes Scanner-Modell ein, z. B. iX1600, iX1400, fi-8170 oder SP-1120N.',
+      en: 'Please enter a real scanner model, for example iX1600, iX1400, fi-8170, or SP-1120N.',
+      pt: 'Introduz um modelo real de scanner, por exemplo iX1600, iX1400, fi-8170 ou SP-1120N.',
+      es: 'Introduce un modelo real de escáner, por ejemplo iX1600, iX1400, fi-8170 o SP-1120N.',
+      fr: 'Indique un vrai modèle de scanner, par exemple iX1600, iX1400, fi-8170 ou SP-1120N.',
+      it: 'Inserisci un modello scanner reale, ad esempio iX1600, iX1400, fi-8170 o SP-1120N.',
+      nl: 'Vul een echt scannermodel in, bijvoorbeeld iX1600, iX1400, fi-8170 of SP-1120N.',
+      ja: '実際のスキャナーモデルを入力してください。例: iX1600、iX1400、fi-8170、SP-1120N。'
+    },
+    problem: {
+      de: 'Bitte beschreibe kurz einen echten Fehler, z. B. „Scanner wird per USB nicht erkannt“ oder „Fehlercode -5“.',
+      en: 'Please describe a real issue, for example “scanner is not detected via USB” or “error code -5”.',
+      pt: 'Descreve um erro real, por exemplo “scanner não é detetado por USB” ou “erro -5”.',
+      es: 'Describe un error real, por ejemplo “el escáner no se detecta por USB” o “error -5”.',
+      fr: 'Décris un vrai problème, par exemple “scanner non détecté en USB” ou “erreur -5”.',
+      it: 'Descrivi un problema reale, ad esempio “scanner non rilevato via USB” o “errore -5”.',
+      nl: 'Beschrijf een echt probleem, bijvoorbeeld “scanner wordt via USB niet herkend” of “foutcode -5”.',
+      ja: '実際の問題を入力してください。例:「USBでスキャナーが認識されない」または「エラーコード -5」。'
+    }
+  };
+  return messages[kind]?.[lang] || messages[kind]?.de || '';
+}
+
 const SUPPORT_PATHS = {
   SMART_ERROR5_CONTEXT: [
     { title: 'Fehlercode -5 einordnen', instruction: 'Tritt der Fehler bei USB, WLAN oder nach einem Firmwareupdate auf?', difficulty: 'easy', route: 'SMART_ERROR5_CONTEXT', order: 1 }
@@ -260,14 +306,16 @@ export default function Home() {
 
   const detected = useMemo(() => detectModelFromText(`${model} ${problem}`), [model, problem]);
   const modelValue = normalizeModelInput(model || detected.detected || '');
+  const modelIsValid = isValidScannerModel(modelValue);
+  const problemIsValid = isMeaningfulProblem(problem);
 
   const currentValid =
     step === 0 ? supporterName.trim().length > 0 :
-    step === 1 ? modelValue.trim().length > 1 :
+    step === 1 ? modelIsValid :
     step === 2 ? !!connectionType :
-    problem.trim().length > 3;
+    problemIsValid;
 
-  const readyForAnalysis = supporterName.trim() && modelValue.trim() && connectionType && problem.trim().length > 3;
+  const readyForAnalysis = supporterName.trim() && modelIsValid && connectionType && problemIsValid;
 
   const handleLanguage = (value) => {
     setLanguage(value);
@@ -521,6 +569,9 @@ export default function Home() {
                     autoFocus
                     onKeyDown={(e) => { if (e.key === 'Enter') continueOrAnalyze(); }}
                   />
+                  {model.trim() && !modelIsValid && (
+                    <p className="text-xs text-amber-300/85 text-center -mt-2">{validationMessage('model', language)}</p>
+                  )}
                 )}
 
                 {step === 2 && (
@@ -548,9 +599,13 @@ export default function Home() {
                       onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') continueOrAnalyze(); }}
                       autoFocus
                     />
-                    <p className="text-xs text-cyan-200/70">
-                      {analyzing ? tx(language, 'analyzing') : tx(language, 'ready', modelValue, connectionType)}
-                    </p>
+                    {problem.trim() && !problemIsValid ? (
+                      <p className="text-xs text-amber-300/85">{validationMessage('problem', language)}</p>
+                    ) : (
+                      <p className="text-xs text-cyan-200/70">
+                        {analyzing ? tx(language, 'analyzing') : tx(language, 'ready', modelValue, connectionType)}
+                      </p>
+                    )}
                   </>
                 )}
               </motion.div>
