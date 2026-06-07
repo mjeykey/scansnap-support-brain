@@ -122,24 +122,84 @@ function Section({ title, children, defaultOpen = true }) {
 
 // ── Email Module Builder ─────────────────────────────────────
 
+const EXTRA_REQUEST_MODULES = [
+  {
+    key: 'request_error_screenshot',
+    category: 'request',
+    label: { de: 'Fehlermeldung als Screenshot anfordern', en: 'Request screenshot of the error message' },
+    text: { de: 'Bitte senden Sie uns einen Screenshot der vollständigen Fehlermeldung.', en: 'Please send us a screenshot of the full error message.' },
+  },
+  {
+    key: 'request_device_manager_photo',
+    category: 'request',
+    label: { de: 'Geräte-Manager Screenshot/Foto anfordern', en: 'Request Device Manager screenshot/photo' },
+    text: { de: 'Bei USB-Problemen senden Sie uns bitte zusätzlich einen Screenshot oder ein Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist.', en: 'For USB issues, please also send a screenshot or photo from Windows Device Manager showing the scanner or unknown device.' },
+  },
+  {
+    key: 'request_sshome_version',
+    category: 'request',
+    label: { de: 'ScanSnap Home (SSH) Version anfragen', en: 'Request ScanSnap Home version' },
+    text: { de: 'Bitte teilen Sie uns außerdem mit, welche ScanSnap Home Version aktuell installiert ist.', en: 'Please also let us know which ScanSnap Home version is currently installed.' },
+  },
+  {
+    key: 'request_firmware_version',
+    category: 'request',
+    label: { de: 'Firmware-Version anfragen', en: 'Request firmware version' },
+    text: { de: 'Bitte teilen Sie uns zusätzlich die aktuell installierte Firmware-Version des Scanners mit.', en: 'Please also let us know the scanner firmware version currently installed.' },
+  },
+  {
+    key: 'request_os_version',
+    category: 'request',
+    label: { de: 'Betriebssystem anfragen', en: 'Request operating system' },
+    text: { de: 'Bitte nennen Sie uns außerdem Ihr Betriebssystem inklusive Versionsstand.', en: 'Please also tell us which operating system and version you are using.' },
+  },
+];
+
+function getSuggestedExtraModules(session) {
+  const text = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.performedSteps || []).map(s => s.title || '').join(' ')}`.toLowerCase();
+  const result = [];
+  if (/usb|geräte-manager|device manager|nicht erkannt|not detect|0x80211001/.test(text)) {
+    result.push('request_device_manager_photo', 'request_error_screenshot', 'request_os_version', 'request_sshome_version');
+  }
+  if (/firmware|update|recovery/.test(text)) {
+    result.push('request_firmware_version');
+  }
+  if (!session?.os) result.push('request_os_version');
+  if (/scansnap home|installation|pfussmon|software|ocr|image processing|home/.test(text)) {
+    result.push('request_sshome_version');
+  }
+  return Array.from(new Set(result));
+}
+
+function buildExtraRequestLines(selectedExtraKeys, lang) {
+  const selectedExtra = EXTRA_REQUEST_MODULES.filter(mod => selectedExtraKeys.includes(mod.key));
+  if (!selectedExtra.length) return '';
+  const intro = lang === 'de'
+    ? 'Für die weitere Prüfung benötigen wir bitte noch folgende Informationen:'
+    : 'For the further review, we still need the following information:';
+  return `${intro}\n\n${selectedExtra.map(mod => `- ${mod.text[lang] || mod.text.en}`).join('\n')}`;
+}
+
 function EmailBuilder({ session, brain, lang }) {
-  const suggested = useMemo(() => suggestModules(session, brain), [session, brain]);
+  const baseSuggested = useMemo(() => suggestModules(session, brain), [session, brain]);
+  const extraSuggested = useMemo(() => getSuggestedExtraModules(session), [session]);
+  const suggested = useMemo(() => Array.from(new Set([...(baseSuggested || []), ...extraSuggested])), [baseSuggested, extraSuggested]);
   const [selected, setSelected] = useState(suggested);
   const [emailText, setEmailText] = useState('');
   const [built, setBuilt] = useState(false);
   const ui = getUI(lang);
+  const extraKeys = EXTRA_REQUEST_MODULES.map(m => m.key);
 
-  // Group modules
   const groups = {
     troubleshooting: Object.values(EMAIL_MODULES).filter(m => m.category === 'troubleshooting'),
-    request:         Object.values(EMAIL_MODULES).filter(m => m.category === 'request'),
-    status:          Object.values(EMAIL_MODULES).filter(m => m.category === 'status' && m.key !== 'greeting' && m.key !== 'closing'),
+    request: [...Object.values(EMAIL_MODULES).filter(m => m.category === 'request'), ...EXTRA_REQUEST_MODULES],
+    status: Object.values(EMAIL_MODULES).filter(m => m.category === 'status' && m.key !== 'greeting' && m.key !== 'closing'),
   };
 
   const GROUP_LABELS = {
     troubleshooting: { de: 'Troubleshooting-Schritte', en: 'Troubleshooting Steps', fr: 'Étapes de dépannage', es: 'Pasos de resolución', pt: 'Etapas de resolução', it: 'Passaggi di risoluzione', nl: 'Probleemoplossing stappen', ja: 'トラブルシューティング手順', zh: '故障排除步骤' },
-    request:         { de: 'Informationsanfragen', en: 'Information Requests', fr: 'Demandes d\'informations', es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
-    status:          { de: 'Statusmeldungen', en: 'Status Messages', fr: 'Messages de statut', es: 'Mensajes de estado', pt: 'Mensagens de status', it: 'Messaggi di stato', nl: 'Statusberichten', ja: 'ステータスメッセージ', zh: '状态消息' },
+    request: { de: 'Informationsanfragen', en: 'Information Requests', fr: 'Demandes d\'informations', es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
+    status: { de: 'Statusmeldungen', en: 'Status Messages', fr: 'Messages de statut', es: 'Mensajes de estado', pt: 'Mensagens de status', it: 'Messaggi di stato', nl: 'Statusberichten', ja: 'ステータスメッセージ', zh: '状态消息' },
   };
 
   const toggle = (key) => {
@@ -148,14 +208,27 @@ function EmailBuilder({ session, brain, lang }) {
   };
 
   const buildEmail = () => {
+    const baseSelected = selected.filter(key => !extraKeys.includes(key));
+    const selectedExtra = selected.filter(key => extraKeys.includes(key));
     let text = '';
     try {
-      text = shouldUseAnalysisAwareEmail(session)
-        ? buildAnalysisAwareEmail(session, lang)
-        : assembleEmail(selected, lang, session?.supporterName || '', session);
+      text = assembleEmail(baseSelected, lang, session?.supporterName || '', session);
     } catch (err) {
       console.error('Email generation failed:', err);
-      text = assembleEmail(selected, lang, session?.supporterName || '', session);
+      text = assembleEmail(baseSelected, lang, session?.supporterName || '', session);
+    }
+
+    const extraBlock = buildExtraRequestLines(selectedExtra, lang);
+    if (extraBlock) {
+      const closingDE = 'Mit freundlichen Grüßen';
+      const closingEN = 'Kind regards';
+      if (lang === 'de' && text.includes(closingDE)) {
+        text = text.replace(closingDE, `${extraBlock}\n\n${closingDE}`);
+      } else if (lang !== 'de' && text.includes(closingEN)) {
+        text = text.replace(closingEN, `${extraBlock}\n\n${closingEN}`);
+      } else {
+        text = `${text.trim()}\n\n${extraBlock}`;
+      }
     }
     setEmailText(text);
     setBuilt(true);
@@ -165,36 +238,27 @@ function EmailBuilder({ session, brain, lang }) {
 
   return (
     <div className="space-y-4">
-      {/* Module selector */}
       {Object.entries(groups).map(([groupKey, modules]) => (
         <div key={groupKey}>
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 mb-2">
-            {GROUP_LABELS[groupKey][lang] || GROUP_LABELS[groupKey]['en']}
+            {GROUP_LABELS[groupKey][lang] || GROUP_LABELS[groupKey].en}
           </p>
           <div className="space-y-1.5">
             {modules.map(mod => {
               const isSuggested = suggested.includes(mod.key);
               const isSelected = selected.includes(mod.key);
-              const label = mod.label[lang] || mod.label['en'];
+              const label = mod.label[lang] || mod.label.en;
               return (
                 <button
                   key={mod.key}
                   onClick={() => toggle(mod.key)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all ${
-                    isSelected
-                      ? 'bg-primary/12 border border-primary/30'
-                      : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]'
-                  }`}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all ${isSelected ? 'bg-primary/12 border border-primary/30' : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]'}`}
                 >
-                  <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
-                    isSelected ? 'bg-primary border-primary' : 'border-white/20'
-                  }`}>
+                  <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-white/20'}`}>
                     {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
                   </div>
                   <span className={`text-xs ${isSelected ? 'text-white/80' : 'text-white/40'}`}>{label}</span>
-                  {isSuggested && (
-                    <span className="ml-auto text-[9px] text-primary/60 uppercase tracking-wider shrink-0">suggested</span>
-                  )}
+                  {isSuggested && <span className="ml-auto text-[9px] text-primary/60 uppercase tracking-wider shrink-0">suggested</span>}
                 </button>
               );
             })}
@@ -213,14 +277,10 @@ function EmailBuilder({ session, brain, lang }) {
         </Button>
       </div>
 
-      {/* Email output */}
       <AnimatePresence>
         {built && emailText && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <div
-              className="rounded-xl overflow-hidden"
-              style={{ background: 'rgba(248,248,252,0.98)', border: '1px solid rgba(45,212,191,0.2)' }}
-            >
+            <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(248,248,252,0.98)', border: '1px solid rgba(45,212,191,0.2)' }}>
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/6">
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-primary" />
@@ -242,6 +302,7 @@ function EmailBuilder({ session, brain, lang }) {
 }
 
 // ── Case Summary ─────────────────────────────────────────────
+ ─────────────────────────────────────────────
 
 
 function LocalCaseSummary({ session, lang }) {
