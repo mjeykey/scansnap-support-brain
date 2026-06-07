@@ -137,7 +137,7 @@ function EmailBuilder({ session, brain, lang }) {
 
   const GROUP_LABELS = {
     troubleshooting: { de: 'Troubleshooting-Schritte', en: 'Troubleshooting Steps', fr: 'Étapes de dépannage', es: 'Pasos de resolución', pt: 'Etapas de resolução', it: 'Passaggi di risoluzione', nl: 'Probleemoplossing stappen', ja: 'トラブルシューティング手順', zh: '故障排除步骤' },
-    request: { de: 'Informationsanfragen', en: 'Information Requests', fr: "Demandes d\'informations", es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
+    request: { de: 'Informationsanfragen', en: 'Information Requests', fr: "Demandes d'informations", es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
     status: { de: 'Statusmeldungen', en: 'Status Messages', fr: 'Messages de statut', es: 'Mensajes de estado', pt: 'Mensagens de status', it: 'Messaggi di stato', nl: 'Statusberichten', ja: 'ステータスメッセージ', zh: '状态消息' },
   };
 
@@ -178,7 +178,7 @@ function EmailBuilder({ session, brain, lang }) {
 
   const stepTitle = (step) => {
     const raw = step?.title || step?.instruction || step?.body || step?.stepId || (isDe ? 'Schritt' : 'Step');
-    return String(raw).replace(/^Ich prüfe gerade\\s*[„"']?/i, '').replace(/[„"']$/g, '').trim();
+    return String(raw).replace(/^Ich prüfe gerade\s*[„"']?/i, '').replace(/[„"']$/g, '').trim();
   };
 
   const selectedTroubleshootingKeys = (keys) =>
@@ -189,6 +189,23 @@ function EmailBuilder({ session, brain, lang }) {
 
   const selectedStatusKeys = (keys) =>
     keys.filter(k => EMAIL_MODULES[k]?.category === 'status');
+
+  const addUniqueLine = (lines, line) => {
+    const clean = String(line || '')
+      .replace(/^[-•]\s*/, '')
+      .replace(/^Bitte\s+/i, '')
+      .replace(/^Please\s+/i, '')
+      .replace(/[.。]\s*$/, '')
+      .trim();
+    if (!clean) return;
+    const key = clean.toLowerCase()
+      .replace(/vollständigen|angezeigten|aktuellen|aktuell|bitte|please/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+    if (!lines.some(x => x.key === key || x.text.toLowerCase().includes(key) || key.includes(x.key))) {
+      lines.push({ key, text: clean });
+    }
+  };
 
   const analysisLinesForSelected = (keys) => {
     const tKeys = selectedTroubleshootingKeys(keys);
@@ -209,28 +226,66 @@ function EmailBuilder({ session, brain, lang }) {
     if (!requestKeys.length) return '';
 
     const lines = [];
-    requestKeys.forEach(key => {
-      if (key === 'missing_info_request') {
-        // This module is analysis-aware, but still controlled by the checkbox.
-        if (!session?.os && !session?.knownFacts?.os) lines.push(isDe ? 'Betriebssystem inklusive Version' : 'Operating system including version');
-        if (!session?.connectionType && !session?.knownFacts?.connectionType) lines.push(isDe ? 'Verbindungstyp (USB / WLAN / LAN)' : 'Connectivity type (USB / Wi-Fi / LAN)');
-        lines.push(isDe ? 'Screenshot der vollständigen Fehlermeldung' : 'Screenshot of the full error message');
-        return;
-      }
+    const has = (key) => requestKeys.includes(key);
 
-      const text = getText(key).trim();
-      if (!text) return;
-      lines.push(text.replace(/^Bitte\\s+/i, '').replace(/^Please\\s+/i, ''));
-    });
+    if (has('missing_info_request')) {
+      if (!session?.os && !session?.knownFacts?.os) addUniqueLine(lines, isDe ? 'Betriebssystem inklusive Version' : 'Operating system including version');
+      if (!session?.connectionType && !session?.knownFacts?.connectionType) addUniqueLine(lines, isDe ? 'Verbindungstyp (USB / WLAN / LAN)' : 'Connectivity type (USB / Wi-Fi / LAN)');
+      addUniqueLine(lines, isDe ? 'Screenshot der vollständigen Fehlermeldung' : 'Screenshot of the full error message');
+    }
+
+    if (has('request_device_manager_photo')) {
+      addUniqueLine(lines, isDe
+        ? 'Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist'
+        : 'Screenshot or photo from Windows Device Manager showing the scanner or unknown device'
+      );
+    }
+
+    if (has('request_error_screenshot')) {
+      addUniqueLine(lines, isDe ? 'Screenshot der vollständigen Fehlermeldung' : 'Screenshot of the full error message');
+    }
+
+    if (has('request_os_version')) {
+      addUniqueLine(lines, isDe ? 'Betriebssystem inklusive Versionsstand' : 'Operating system including version');
+    }
+
+    if (has('request_sshome_version')) {
+      addUniqueLine(lines, isDe ? 'Installierte ScanSnap Home Version' : 'Installed ScanSnap Home version');
+    }
+
+    if (has('request_firmware_version')) {
+      addUniqueLine(lines, isDe ? 'Installierte Firmware-Version des Scanners' : 'Installed scanner firmware version');
+    }
+
+    if (has('screenshot_request')) {
+      addUniqueLine(lines, isDe ? 'Screenshot der angezeigten Fehlermeldung' : 'Screenshot of the displayed error message');
+      addUniqueLine(lines, isDe ? 'Falls möglich, ein kurzes Video des Scannerverhaltens (max. 30 Sekunden)' : 'If possible, a short video of the scanner behaviour (max. 30 seconds)');
+      addUniqueLine(lines, isDe ? 'Foto der aktuellen LED-Anzeige des Scanners' : 'Photo of the current scanner LED indicator');
+    }
 
     if (!lines.length) return '';
-    return `${isDe ? 'Für die nächste Prüfung benötigen wir bitte noch folgende Informationen:' : 'For the next review, we still need the following information:'}\\n\\n${lines.map(line => `- ${line}`).join('\\n')}`;
+    return `${isDe ? 'Für die nächste Prüfung benötigen wir bitte noch folgende Informationen:' : 'For the next review, we still need the following information:'}
+
+${lines.map(line => `- ${line.text}`).join('\n')}`;
   };
 
   const statusBlockForSelected = (keys) => {
     const statusKeys = selectedStatusKeys(keys);
-    const blocks = statusKeys.map(key => getText(key).trim()).filter(Boolean);
-    return blocks.join('\\n\\n');
+    const blocks = [];
+
+    if (statusKeys.includes('waiting_response')) {
+      blocks.push(isDe
+        ? 'Bitte testen Sie die oben beschriebenen Schritte und teilen Sie uns das Ergebnis mit.'
+        : 'Please test the steps described above and let us know the result.'
+      );
+    }
+
+    if (statusKeys.includes('resolved_confirmation')) {
+      const text = getText('resolved_confirmation').trim();
+      if (text) blocks.push(text);
+    }
+
+    return blocks.join('\n\n');
   };
 
   const buildSelectedEmail = (keys = selected) => {
@@ -239,15 +294,15 @@ function EmailBuilder({ session, brain, lang }) {
 
     const parts = [];
     parts.push(isDe
-      ? 'Guten Tag,\\n\\nvielen Dank für Ihre Rückmeldung.'
-      : 'Hello,\\n\\nThank you for your feedback.'
+      ? 'Guten Tag,\n\nvielen Dank für Ihre Rückmeldung.'
+      : 'Hello,\n\nThank you for your feedback.'
     );
 
     const analysisLines = analysisLinesForSelected(unique);
     if (analysisLines.length) {
       parts.push(isDe
-        ? `Gemäß der dokumentierten Analyse wurden die folgenden ausgewählten Schritte für Ihren ${model} bereits durchgeführt:\\n\\n${analysisLines.join('\\n')}`
-        : `According to the documented analysis, the following selected steps have already been performed for your ${model}:\\n\\n${analysisLines.join('\\n')}`
+        ? `Gemäß der dokumentierten Analyse wurden die folgenden ausgewählten Schritte für Ihren ${model} bereits durchgeführt:\n\n${analysisLines.join('\n')}`
+        : `According to the documented analysis, the following selected steps have already been performed for your ${model}:\n\n${analysisLines.join('\n')}`
       );
     }
 
@@ -261,7 +316,7 @@ function EmailBuilder({ session, brain, lang }) {
     closing = closing.replaceAll('[Supporter Name]', session?.supporterName || 'Marina Karlovic');
     parts.push(closing);
 
-    return parts.filter(Boolean).join('\\n\\n').replace(/\\n{3,}/g, '\\n\\n');
+    return parts.filter(Boolean).join('\n\n').replace(/\n{3,}/g, '\n\n');
   };
 
   const toggle = (key) => {
@@ -360,6 +415,7 @@ function EmailBuilder({ session, brain, lang }) {
 }
 
 // ── Case Summary ─────────────────────────────────────────────
+
 
 
 

@@ -363,15 +363,32 @@ export function buildTemplate(templateKey, session) {
 export function buildMissingInfoEmail(missingFields, session) {
   const model = (session?.model || session?.device || '').toUpperCase() || 'Scanner';
   const lang = String(session?.supportLanguage || session?.emailLanguage || session?.language || session?.settings?.emailLanguage || 'de').toLowerCase();
-  const cleanFields = (missingFields || []).filter(f => !['country', 'warranty'].includes(f.id));
-  const fieldList = cleanFields.map(f => `- ${f.label}`).join('\\n');
+
+  const labelMapDe = {
+    'Operating system': 'Betriebssystem',
+    'Error code displayed on scanner': 'Fehlercode auf dem Scannerdisplay',
+    'Scan count / Lifetime counter': 'Scananzahl / Lifetime Counter',
+    'Frequency of occurrence (always / intermittent)': 'Häufigkeit des Auftretens (immer / sporadisch)',
+    'Links to files / screenshots from customer': 'Links zu Dateien/Screenshots vom Kunden',
+    'Connectivity type (USB / Wi-Fi / LAN)': 'Verbindungstyp (USB / WLAN / LAN)',
+    'Scanner serial number': 'Scanner-Seriennummer',
+  };
+
+  const cleanFields = (missingFields || [])
+    .filter(f => !['country', 'warranty'].includes(f.id))
+    .map(f => {
+      const label = f.label || '';
+      return lang.startsWith('de') ? (labelMapDe[label] || label) : label;
+    });
+
+  const fieldList = cleanFields.map(label => `- ${label}`).join('\n');
 
   if (lang.startsWith('de')) {
     const fallback = [
       '- Betriebssystem inklusive Version',
       '- ScanSnap Home Version',
       '- Screenshot der vollständigen Fehlermeldung'
-    ].join('\\n');
+    ].join('\n');
 
     return `Guten Tag,
 
@@ -393,7 +410,7 @@ PFU Support Team`;
     '- Operating system including version',
     '- ScanSnap Home version',
     '- Screenshot of the full error message'
-  ].join('\\n');
+  ].join('\n');
 
   return `Dear Customer,
 
