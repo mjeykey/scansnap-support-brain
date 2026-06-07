@@ -498,99 +498,132 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
 
 
 
+
 function LocalCaseSummary({ session, lang }) {
-  const [summaryLang, setSummaryLang] = useState('en');
+  const sourceLang = (lang || getSettings()?.emailLanguage || 'de').toLowerCase();
+  const [summaryLang, setSummaryLang] = useState(sourceLang);
+
+  useEffect(() => {
+    setSummaryLang(sourceLang);
+  }, [sourceLang]);
   const steps = session?.steps || [];
-  const model = session?.model || session?.device || session?.knownFacts?.model || 'Not provided';
-  const issue = session?.problem || 'Not provided';
-  const connection = session?.connectionType || session?.knownFacts?.connectionType || 'Not provided';
+  const model = session?.model || session?.device || session?.knownFacts?.model || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
+  const issue = session?.problem || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
+  const connection = session?.connectionType || session?.knownFacts?.connectionType || (summaryLang === 'en' ? 'Not provided' : 'Nicht angegeben');
 
   const visible = steps.filter(s => s.status && s.status !== 'pending');
   const solved = steps.find(s => s.status === 'solved');
   const failed = visible.filter(s => ['not_solved', 'not_possible', 'blocked'].includes(s.status));
   const waiting = visible.find(s => s.status === 'waiting_customer');
 
-  const cleanTitle = (step, target = 'en') => {
-    const raw = String(step?.title || step?.instruction || step?.body || step?.stepId || 'Step').trim();
-    if (target === 'en') {
-      if (raw.includes('Direkte USB-Verbindung')) return 'Checked direct USB connection';
-      if (raw.includes('Anderen USB-Anschluss')) return 'Tested another USB port and cable';
-      if (raw.includes('Geräte-Manager')) return 'Checked Windows Device Manager detection';
-      if (raw.includes('Scanner in ScanSnap Home entfernen')) return 'Removed and reconnected scanner in ScanSnap Home';
-      if (raw.includes('ScanSnap Home bereinigen')) return 'Prepared ScanSnap Home cleanup and reinstall';
-      if (raw.includes('Windows-Systemintegrität')) return 'Checked Windows system integrity (SFC/DISM)';
-      if (raw.includes('WLAN-Status')) return 'Checked scanner Wi-Fi status';
-      if (raw.includes('Scanner und Computer im selben Netzwerk')) return 'Checked scanner and computer are on the same network';
-      if (raw.includes('Router')) return 'Checked router / 2.4 GHz network';
-      if (raw.includes('Hotspot')) return 'Performed hotspot or direct connection test';
-      if (raw.includes('Firmwareupdate')) return 'Checked firmware update via ScanSnap Home';
-      if (raw.includes('Firmware-Recovery')) return 'Prepared firmware recovery only if recovery state is confirmed';
+  const statusLabel = (status, target) => {
+    const labels = {
+      en: { solved:'resolved', done:'completed', not_solved:'completed, issue not resolved', not_possible:'not possible', blocked:'blocked', waiting_customer:'awaiting customer response', skipped:'skipped' },
+      de: { solved:'gelöst', done:'durchgeführt', not_solved:'durchgeführt, Problem nicht behoben', not_possible:'nicht möglich', blocked:'blockiert', waiting_customer:'wartet auf Kundenrückmeldung', skipped:'übersprungen' },
+      pt: { solved:'resolvido', done:'concluído', not_solved:'concluído, problema não resolvido', not_possible:'não possível', blocked:'bloqueado', waiting_customer:'a aguardar resposta do cliente', skipped:'ignorado' },
+    };
+    return (labels[target] || labels.de)[status] || String(status || '').replaceAll('_', ' ');
+  };
+
+  const cleanTitle = (step, target = sourceLang) => {
+    if (step?.stepId) {
+      const resolved = resolveStep(step.stepId, target);
+      if (resolved?.title && resolved.title !== step.stepId) return resolved.title;
     }
+
+    const raw = String(step?.title || step?.instruction || step?.body || step?.stepId || (target === 'en' ? 'Step' : 'Schritt')).trim();
+
+    if (target === 'en') {
+      if (raw.includes('Direkte USB-Verbindung') || raw.includes('Verificar ligação USB direta')) return 'Checked direct USB connection';
+      if (raw.includes('Anderen USB-Anschluss') || raw.includes('Testar outra porta USB')) return 'Tested another USB port and cable';
+      if (raw.includes('Geräte-Manager') || raw.includes('Gestor de Dispositivos')) return 'Checked Windows Device Manager detection';
+      if (raw.includes('Scanner in ScanSnap Home entfernen') || raw.includes('Remover e voltar')) return 'Removed and reconnected scanner in ScanSnap Home';
+      if (raw.includes('ScanSnap Home bereinigen') || raw.includes('Limpar e reinstalar')) return 'Prepared ScanSnap Home cleanup and reinstall';
+      if (raw.includes('Windows-Systemintegrität')) return 'Checked Windows system integrity (SFC/DISM)';
+      if (raw.includes('WLAN-Status') || raw.includes('estado do Wi')) return 'Checked scanner Wi-Fi status';
+      if (raw.includes('Scanner und Computer im selben Netzwerk') || raw.includes('mesma rede')) return 'Checked scanner and computer are on the same network';
+      if (raw.includes('Router')) return 'Checked router / 2.4 GHz network';
+      if (raw.includes('Hotspot')) return 'Performed hotspot or alternate network test';
+      if (raw.includes('Firmwareupdate') || raw.includes('firmware')) return 'Checked firmware update path';
+    }
+
     return raw;
   };
 
   const buildSummary = (target) => {
-    const en = target === 'en';
+    const isEn = target === 'en';
+    const isPt = target === 'pt';
     const lines = [];
 
-    if (en) {
-      lines.push('Issue');
-      lines.push(`Customer reported: ${issue}`);
-      lines.push(`Product: ${model}`);
-      lines.push(`Connection: ${connection}`);
-      lines.push('');
-      lines.push('Action');
-      if (!visible.length) {
-        lines.push('No troubleshooting steps have been documented yet.');
-      } else {
-        visible.forEach(s => lines.push(`- ${cleanTitle(s, 'en')}: ${String(s.status || '').replaceAll('_', ' ')}`));
-      }
-      lines.push('');
-      lines.push('Result');
-      if (solved) lines.push(`Issue resolved after: ${cleanTitle(solved, 'en')}.`);
-      else if (waiting) lines.push(`Awaiting customer response regarding: ${cleanTitle(waiting, 'en')}.`);
-      else if (failed.length >= 3) lines.push('The documented troubleshooting did not resolve the issue. Next step: remote session, escalation, or hardware process depending on the case context.');
-      else lines.push('Troubleshooting is still in progress. Additional feedback or information is required.');
-      return lines.join('\n');
+    const H = isEn
+      ? { issue:'Issue', action:'Action', result:'Result', customer:'Customer reported', product:'Product', connection:'Connection', none:'No troubleshooting steps have been documented yet.', progress:'Troubleshooting is still in progress. Additional feedback or information is required.' }
+      : isPt
+        ? { issue:'Problema', action:'Ação', result:'Resultado', customer:'Cliente reportou', product:'Produto', connection:'Ligação', none:'Ainda não foram documentados passos de troubleshooting.', progress:'A análise ainda está em curso. É necessária resposta ou informação adicional.' }
+        : { issue:'Issue', action:'Action', result:'Result', customer:'Kundenmeldung', product:'Produkt', connection:'Verbindung', none:'Es wurden noch keine Troubleshooting-Schritte dokumentiert.', progress:'Fehlersuche läuft weiter. Weitere Rückmeldung oder zusätzliche Informationen erforderlich.' };
+
+    lines.push(H.issue);
+    lines.push(`${H.customer}: ${issue}`);
+    lines.push(`${H.product}: ${model}`);
+    lines.push(`${H.connection}: ${connection}`);
+    lines.push('');
+    lines.push(H.action);
+
+    if (!visible.length) {
+      lines.push(H.none);
+    } else {
+      visible.forEach(s => lines.push(`- ${cleanTitle(s, target)}: ${statusLabel(s.status, target)}`));
     }
 
-    lines.push('Issue');
-    lines.push(`Kundenmeldung: ${issue}`);
-    lines.push(`Produkt: ${model}`);
-    lines.push(`Verbindung: ${connection}`);
     lines.push('');
-    lines.push('Action');
-    if (!visible.length) {
-      lines.push('Es wurden noch keine Troubleshooting-Schritte dokumentiert.');
+    lines.push(H.result);
+
+    if (solved) {
+      lines.push(isEn ? `Issue resolved after: ${cleanTitle(solved, 'en')}.` : isPt ? `Problema resolvido após: ${cleanTitle(solved, 'pt')}.` : `Problem gelöst nach: ${cleanTitle(solved, 'de')}.`);
+    } else if (waiting) {
+      lines.push(isEn ? `Awaiting customer response regarding: ${cleanTitle(waiting, 'en')}.` : isPt ? `A aguardar resposta do cliente sobre: ${cleanTitle(waiting, 'pt')}.` : `Warten auf Kundenrückmeldung zu: ${cleanTitle(waiting, 'de')}.`);
+    } else if (failed.length >= 3) {
+      lines.push(isEn
+        ? 'The documented troubleshooting did not resolve the issue. Next step: remote session, escalation, or hardware process depending on the case context.'
+        : isPt
+          ? 'Os passos documentados não resolveram o problema. Próximo passo: sessão remota, escalamento ou processo de hardware, dependendo do contexto do caso.'
+          : 'Die dokumentierten Maßnahmen haben das Problem nicht behoben. Nächster Schritt: Remote-Session, Eskalation oder Hardwareprozess je nach Fallkontext.');
     } else {
-      visible.forEach(s => lines.push(`- ${cleanTitle(s, 'de')}: ${String(s.status || '').replaceAll('_', ' ')}`));
+      lines.push(H.progress);
     }
-    lines.push('');
-    lines.push('Result');
-    if (solved) lines.push(`Problem gelöst nach: ${cleanTitle(solved, 'de')}.`);
-    else if (waiting) lines.push(`Warten auf Kundenrückmeldung zu: ${cleanTitle(waiting, 'de')}.`);
-    else if (failed.length >= 3) lines.push('Die dokumentierten Maßnahmen haben das Problem nicht behoben. Nächster Schritt: Remote-Session, Eskalation oder Hardwareprozess je nach Fallkontext.');
-    else lines.push('Fehlersuche läuft weiter. Weitere Rückmeldung oder zusätzliche Informationen erforderlich.');
+
     return lines.join('\n');
   };
 
   const text = buildSummary(summaryLang);
-  const copy = () => { navigator.clipboard.writeText(text); toast.success(summaryLang === 'en' ? 'English case summary copied' : 'Fallzusammenfassung kopiert'); };
+  const copy = () => { navigator.clipboard.writeText(text); toast.success(summaryLang === 'en' ? 'Case summary copied' : 'Fallzusammenfassung kopiert'); };
+  const sourceLabel = sourceLang === 'pt' ? 'Português' : sourceLang === 'de' ? 'Deutsch' : sourceLang.toUpperCase();
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <span className="text-[10px] text-white/30 uppercase tracking-widest">
-          {summaryLang === 'en' ? 'English case summary' : 'Deutsche Fallzusammenfassung'}
+          {summaryLang === 'en' ? 'Case summary · English' : `Case summary · ${sourceLabel}`}
         </span>
-        <div className="flex items-center gap-1 rounded-full p-1" style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-          <button type="button" onClick={() => setSummaryLang('de')} className={`px-3 py-1 rounded-full text-[10px] transition-all ${summaryLang !== 'en' ? 'bg-primary/20 text-primary' : 'text-white/35 hover:text-white/60'}`}>
-            Deutsch
-          </button>
-          <button type="button" onClick={() => setSummaryLang('en')} className={`px-3 py-1 rounded-full text-[10px] transition-all ${summaryLang === 'en' ? 'bg-primary/20 text-primary' : 'text-white/35 hover:text-white/60'}`}>
+        {summaryLang !== 'en' && (
+          <button
+            type="button"
+            onClick={() => setSummaryLang('en')}
+            className="px-3 py-1 rounded-full text-[10px] transition-all text-white/35 hover:text-primary"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
             English
           </button>
-        </div>
+        )}
+        {summaryLang === 'en' && sourceLang !== 'en' && (
+          <button
+            type="button"
+            onClick={() => setSummaryLang(sourceLang)}
+            className="px-3 py-1 rounded-full text-[10px] transition-all text-white/35 hover:text-primary"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}
+          >
+            Zurück
+          </button>
+        )}
       </div>
       <div className="rounded-xl p-4 font-mono text-xs text-white/60 leading-relaxed whitespace-pre-wrap" style={{ background: 'rgba(0,0,0,0.35)', border: '1px solid rgba(255,255,255,0.05)' }}>
         {text || '(No steps executed yet)'}
