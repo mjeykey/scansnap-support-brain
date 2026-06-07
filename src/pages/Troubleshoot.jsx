@@ -30,31 +30,102 @@ function cleanTitle(step) {
     .trim();
 }
 
-function stepIntro(name, lang) {
-  const n = (name || '').trim();
-  const copy = {
-    de: n ? `${n}, wie wäre es, wenn wir jetzt diesen Schritt zuerst sauber durchführen?` : 'Wie wäre es, wenn wir jetzt diesen Schritt zuerst sauber durchführen?',
-    en: n ? `${n}, how about we go through this step carefully first?` : 'How about we go through this step carefully first?',
+
+function topicLabel(topic, lang = 'de') {
+  const labels = {
+    de: {
+      usb: 'USB',
+      wifi: 'Wi-Fi',
+      firmware: 'Firmware',
+      software: 'ScanSnap Home',
+      ocr: 'OCR',
+      windows: 'Windows',
+      device_manager: 'Geräte-Manager',
+      unknown: 'diese Spur',
+    },
+    en: {
+      usb: 'USB',
+      wifi: 'Wi-Fi',
+      firmware: 'firmware',
+      software: 'ScanSnap Home',
+      ocr: 'OCR',
+      windows: 'Windows',
+      device_manager: 'Device Manager',
+      unknown: 'this path',
+    }
   };
-  return copy[lang] || copy.de;
+  return labels[lang]?.[topic] || labels.de[topic] || topic;
 }
 
-function stepEncouragement(step, lang) {
-  const text = `${step?.title || ''} ${step?.instruction || ''}`.toLowerCase();
-  if (lang !== 'de') {
-    return 'This helps narrow the issue down quickly and brings us closer to the right solution.';
-  }
-  if (/usb/.test(text)) return 'Das grenzt den Fehler schnell ein — und wenn dieser Test klappt, sind wir der Lösung schon ein gutes Stück näher.';
-  if (/geräte-manager|device manager/.test(text)) return 'Damit sehen wir schnell, ob Windows den Scanner überhaupt korrekt erkennt — das ist für die weitere Analyse sehr wertvoll.';
-  if (/firmware/.test(text)) return 'So erkennen wir früh, ob eher die Firmware oder die Verbindung die Ursache ist.';
-  if (/wlan|wifi|wi-fi|router/.test(text)) return 'Damit erkennen wir schnell, ob die Ursache eher im Netzwerk oder direkt am Scanner liegt.';
-  return 'So können wir den Fehler sauber eingrenzen und den nächsten Schritt deutlich gezielter auswählen.';
+function topicOfStep(step) {
+  const text = `${step?.route || ''} ${step?.stepId || ''} ${step?.title || ''} ${step?.instruction || ''} ${step?.body || ''}`.toLowerCase();
+
+  if (/wlan|wi-fi|wifi|router|network|netzwerk|ip|dhcp|cloud/.test(text)) return 'wifi';
+  if (/geräte-manager|device manager|usb-stack|usb stack/.test(text)) return 'device_manager';
+  if (/firmware|recovery|top sensor|empty arm|update/.test(text)) return 'firmware';
+  if (/ocr|texterkennung|image processing/.test(text)) return 'ocr';
+  if (/sfc|dism|windows-system|systemintegrität|integrity/.test(text)) return 'windows';
+  if (/sshome|cleanup|bereinigung|neu installieren|reinstall|scansnap home/.test(text)) return 'software';
+  if (/usb|direkt|direct|anschluss|kabel|cable/.test(text)) return 'usb';
+  return 'unknown';
 }
+
+function detectTopicShift(steps, index) {
+  if (!Array.isArray(steps) || index <= 0 || !steps[index] || !steps[index - 1]) return null;
+  const from = topicOfStep(steps[index - 1]);
+  const to = topicOfStep(steps[index]);
+  if (!from || !to || from === 'unknown' || to === 'unknown' || from === to) return null;
+  return { from, to };
+}
+
+function detectiveQuestion(name, shift, lang = 'de') {
+  const n = (name || '').trim();
+  const to = topicLabel(shift?.to || 'unknown', lang);
+  const from = topicLabel(shift?.from || 'unknown', lang);
+
+  if (lang !== 'de') {
+    const prefix = n ? `${n}, ` : '';
+    if (shift?.to === 'wifi') return `${prefix}this looks like a possible Wi-Fi path. Shall we check that lead for a moment?`;
+    if (shift?.to === 'firmware') return `${prefix}there may be a firmware lead here. Shall we follow it?`;
+    if (shift?.to === 'device_manager') return `${prefix}before we guess, shall we check what Windows actually sees?`;
+    return `${prefix}we may have a new lead: ${to}. Shall we check it?`;
+  }
+
+  const prefix = n ? `${n}, ` : '';
+  if (shift?.to === 'wifi') return `${prefix}lass uns kurz die Wi-Fi-Spur prüfen. Vielleicht liegt der Fehler eher in der Verbindung.`;
+  if (shift?.to === 'firmware') return `${prefix}hier taucht eine Firmware-Spur auf. Sollen wir dieser Richtung nachgehen?`;
+  if (shift?.to === 'device_manager') return `${prefix}bevor wir raten, schauen wir kurz, was Windows wirklich sieht.`;
+  if (shift?.to === 'windows') return `${prefix}das könnte in Richtung Windows-System gehen. Sollen wir diese Spur prüfen?`;
+  if (shift?.to === 'software') return `${prefix}vielleicht sitzt der Fehler eher in ScanSnap Home. Wollen wir dort nachsehen?`;
+  if (shift?.to === 'ocr') return `${prefix}das sieht nach einer OCR-Spur aus. Sollen wir dort weitermachen?`;
+  return `${prefix}wir wechseln gerade von ${from} zu ${to}. Sollen wir diese Spur prüfen?`;
+}
+
+function quietStepHint(step, index, lang = 'de') {
+  const topic = topicOfStep(step);
+  const text = `${step?.title || ''} ${step?.instruction || ''}`.toLowerCase();
+
+  // Most steps deliberately stay quiet. Only speak when it adds value.
+  if (lang !== 'de') {
+    if (index === 0 && topic === 'usb') return 'This is the cleanest first check.';
+    if (topic === 'device_manager') return 'This tells us what Windows can actually see.';
+    if (topic === 'firmware') return 'This step should be done carefully and only via direct USB.';
+    return '';
+  }
+
+  if (index === 0 && topic === 'usb') return 'Wir starten mit dem einfachsten Check.';
+  if (topic === 'device_manager') return 'Hier reicht ein kurzer Blick – dann wissen wir deutlich mehr.';
+  if (topic === 'firmware') return 'Diesen Schritt bitte ruhig und sauber durchführen.';
+  if (/recovery|top sensor|empty arm/.test(text)) return 'Das ist ein sensibler Schritt. Nimm dir dafür ruhig einen Moment.';
+  return '';
+}
+
 
 export default function Troubleshoot() {
   const navigate = useNavigate();
   const [session, setLocalSession] = useState(getSession());
   const [showBrain, setShowBrain] = useState(false);
+  const [acceptedTopicShifts, setAcceptedTopicShifts] = useState({});
 
   const { steps, currentStepIndex, problem, rootCause, issueType, status, kbEntry } = session;
 
@@ -172,6 +243,9 @@ export default function Troubleshoot() {
   const stepTitle = cleanTitle(currentStep);
   const stepInstruction = String(currentStep?.instruction || currentStep?.body || '').trim();
   const personName = session?.supporterName || '';
+  const topicShift = detectTopicShift(steps, currentStepIndex);
+  const showTopicShiftPrompt = !!topicShift && !acceptedTopicShifts[currentStepIndex];
+  const stepHint = quietStepHint(currentStep, currentStepIndex, language);
   const stepDots = steps.length > 1 ? steps.map((s, i) => ({
     isDone: ['solved', 'not_solved', 'not_possible', 'skipped', 'waiting_customer', 'blocked'].includes(s.status),
     isCurrent: i === currentStepIndex,
@@ -246,60 +320,104 @@ export default function Troubleshoot() {
               transition={{ duration: 0.25 }}
               className="px-3 py-8 md:px-8 md:py-10"
             >
-              <div className="text-center max-w-2xl mx-auto">
-                <h1 className="text-3xl md:text-4xl font-semibold text-white leading-tight">
-                  {stepTitle}
-                </h1>
-                <p className="mt-5 text-lg text-white/90 leading-relaxed">
-                  {stepIntro(personName, language)}
-                </p>
+              <div className="text-center max-w-3xl mx-auto">
+                {showTopicShiftPrompt ? (
+                  <div className="min-h-[560px] flex flex-col items-center justify-center">
+                    <p className="text-[11px] uppercase tracking-[0.28em] text-primary/70 mb-5">
+                      {language === 'de' ? 'Neue Spur erkannt' : 'New lead detected'}
+                    </p>
+                    <h1 className="text-3xl md:text-5xl font-semibold text-white leading-tight">
+                      {topicLabel(topicShift.to, language)}
+                    </h1>
+                    <p className="mt-7 text-xl md:text-2xl text-white/88 leading-relaxed max-w-2xl">
+                      {detectiveQuestion(personName, topicShift, language)}
+                    </p>
 
-                {stepInstruction && (
-                  <div className="mt-6 px-2 py-2 text-white/92 text-lg leading-relaxed">
-                    {stepInstruction}
+                    <motion.img
+                      src={brainNeon}
+                      alt="Support Brain"
+                      className="mt-14 w-64 md:w-80 object-contain"
+                      animate={{ y: [0, -18, 0], scale: [1, 1.035, 1] }}
+                      transition={{ duration: 5.8, repeat: Infinity, ease: 'easeInOut' }}
+                      style={{
+                        mixBlendMode: 'screen',
+                        filter: 'drop-shadow(0 0 46px rgba(45,212,191,0.72)) drop-shadow(0 0 100px rgba(236,72,153,0.52)) drop-shadow(0 0 140px rgba(80,110,255,0.35))'
+                      }}
+                    />
+
+                    <div className="mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 text-lg">
+                      <button
+                        onClick={() => setAcceptedTopicShifts(prev => ({ ...prev, [currentStepIndex]: true }))}
+                        className="text-primary hover:text-primary/80 transition-colors"
+                      >
+                        {language === 'de' ? 'Ja, Spur prüfen' : 'Yes, check this lead'}
+                      </button>
+                      <button
+                        onClick={goPreviousStep}
+                        className="text-white/70 hover:text-white transition-colors"
+                      >
+                        {language === 'de' ? 'Nein, zurück' : 'No, go back'}
+                      </button>
+                    </div>
                   </div>
+                ) : (
+                  <>
+                    <h1 className="text-3xl md:text-5xl font-semibold text-white leading-tight">
+                      {stepTitle}
+                    </h1>
+
+                    {stepHint && (
+                      <p className="mt-6 text-lg md:text-xl text-white/82 leading-relaxed">
+                        {stepHint}
+                      </p>
+                    )}
+
+                    {stepInstruction && (
+                      <div className="mt-8 px-2 py-2 text-white/92 text-lg md:text-xl leading-relaxed">
+                        {stepInstruction}
+                      </div>
+                    )}
+
+                    <motion.button
+                      onClick={() => handleStepResult('not_solved')}
+                      className="group mt-16 inline-flex items-center justify-center bg-transparent border-0 p-0 rounded-full focus:outline-none"
+                      title={language === 'de' ? 'Nächsten Schritt öffnen' : 'Open next step'}
+                      animate={{ y: [0, -16, 0], scale: [1, 1.025, 1] }}
+                      transition={{ duration: 5.6, repeat: Infinity, ease: 'easeInOut' }}
+                    >
+                      <img
+                        src={brainNeon}
+                        alt="Continue"
+                        className="w-64 md:w-80 object-contain opacity-95 transition-transform duration-300 group-hover:scale-105"
+                        style={{
+                          filter: 'drop-shadow(0 0 46px rgba(45,212,191,0.74)) drop-shadow(0 0 105px rgba(236,72,153,0.50)) drop-shadow(0 0 150px rgba(85,105,255,0.32))',
+                          mixBlendMode: 'screen'
+                        }}
+                      />
+                    </motion.button>
+
+                    <div className="mt-12 flex flex-wrap items-center justify-center gap-x-9 gap-y-3 text-lg">
+                      <button
+                        onClick={() => handleStepResult('solved')}
+                        className="text-primary hover:text-primary/80 transition-colors"
+                      >
+                        {language === 'de' ? 'Hat geholfen' : 'Solved'}
+                      </button>
+                      <button
+                        onClick={() => handleStepResult('not_possible')}
+                        className="text-white/70 hover:text-white transition-colors"
+                      >
+                        {language === 'de' ? 'Nicht möglich' : 'Not possible'}
+                      </button>
+                      <button
+                        onClick={() => handleStepResult('waiting_customer')}
+                        className="text-amber-400 hover:text-amber-300 transition-colors"
+                      >
+                        {language === 'de' ? 'Warte auf Rückmeldung' : 'Waiting for reply'}
+                      </button>
+                    </div>
+                  </>
                 )}
-
-                <p className="mt-6 text-primary text-xl leading-relaxed">
-                  {stepEncouragement(currentStep, language)}
-                </p>
-
-                <button
-                  onClick={() => handleStepResult('not_solved')}
-                  className="group mt-8 inline-flex items-center justify-center bg-transparent border-0 p-0 rounded-full focus:outline-none"
-                  title={language === 'de' ? 'Nächsten Schritt öffnen' : 'Open next step'}
-                >
-                  <img
-                    src={brainNeon}
-                    alt="Continue"
-                    className="w-52 md:w-64 object-contain opacity-95 transition-transform duration-200 group-hover:scale-105"
-                    style={{
-                      filter: 'drop-shadow(0 0 36px rgba(45,212,191,0.62)) drop-shadow(0 0 80px rgba(236,72,153,0.38))',
-                      mixBlendMode: 'screen'
-                    }}
-                  />
-                </button>
-
-                <div className="mt-7 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-lg">
-                  <button
-                    onClick={() => handleStepResult('solved')}
-                    className="text-primary hover:text-primary/80 transition-colors"
-                  >
-                    {language === 'de' ? 'Hat geholfen' : 'Solved'}
-                  </button>
-                  <button
-                    onClick={() => handleStepResult('not_possible')}
-                    className="text-white/70 hover:text-white transition-colors"
-                  >
-                    {language === 'de' ? 'Nicht möglich' : 'Not possible'}
-                  </button>
-                  <button
-                    onClick={() => handleStepResult('waiting_customer')}
-                    className="text-amber-400 hover:text-amber-300 transition-colors"
-                  >
-                    {language === 'de' ? 'Warte auf Rückmeldung' : 'Waiting for reply'}
-                  </button>
-                </div>
               </div>
             </motion.div>
           </AnimatePresence>
