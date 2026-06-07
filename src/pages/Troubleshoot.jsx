@@ -244,10 +244,7 @@ export default function Troubleshoot() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -18 }}
               transition={{ duration: 0.25 }}
-              className="rounded-[34px] px-7 py-8 md:px-10 md:py-10 shadow-[0_25px_80px_rgba(0,0,0,0.35)]"
-              style={{
-                background: 'linear-gradient(180deg, rgba(10,8,34,0.94) 0%, rgba(8,6,28,0.92) 100%)'
-              }}
+              className="px-3 py-8 md:px-8 md:py-10"
             >
               <div className="text-center max-w-2xl mx-auto">
                 <h1 className="text-3xl md:text-4xl font-semibold text-white leading-tight">
@@ -258,7 +255,7 @@ export default function Troubleshoot() {
                 </p>
 
                 {stepInstruction && (
-                  <div className="mt-6 rounded-[24px] bg-white/[0.05] px-6 py-5 text-white/92 text-lg leading-relaxed">
+                  <div className="mt-6 px-2 py-2 text-white/92 text-lg leading-relaxed">
                     {stepInstruction}
                   </div>
                 )}
@@ -269,15 +266,15 @@ export default function Troubleshoot() {
 
                 <button
                   onClick={() => handleStepResult('not_solved')}
-                  className="group mt-8 inline-flex items-center justify-center rounded-full focus:outline-none"
+                  className="group mt-8 inline-flex items-center justify-center bg-transparent border-0 p-0 rounded-full focus:outline-none"
                   title={language === 'de' ? 'Nächsten Schritt öffnen' : 'Open next step'}
                 >
                   <img
                     src={brainNeon}
                     alt="Continue"
-                    className="w-40 md:w-48 object-contain opacity-95 transition-transform duration-200 group-hover:scale-105"
+                    className="w-52 md:w-64 object-contain opacity-95 transition-transform duration-200 group-hover:scale-105"
                     style={{
-                      filter: 'drop-shadow(0 0 28px rgba(45,212,191,0.55)) drop-shadow(0 0 54px rgba(236,72,153,0.35))',
+                      filter: 'drop-shadow(0 0 36px rgba(45,212,191,0.62)) drop-shadow(0 0 80px rgba(236,72,153,0.38))',
                       mixBlendMode: 'screen'
                     }}
                   />
