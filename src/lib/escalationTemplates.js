@@ -364,19 +364,22 @@ export function buildMissingInfoEmail(missingFields, session) {
   const model = (session?.model || session?.device || '').toUpperCase() || 'Scanner';
   const lang = String(session?.supportLanguage || session?.emailLanguage || session?.language || session?.settings?.emailLanguage || 'de').toLowerCase();
   const cleanFields = (missingFields || []).filter(f => !['country', 'warranty'].includes(f.id));
-  const fieldList = cleanFields.map(f => `- ${f.label}`).join('
-');
+  const fieldList = cleanFields.map(f => `- ${f.label}`).join('\\n');
 
   if (lang.startsWith('de')) {
+    const fallback = [
+      '- Betriebssystem inklusive Version',
+      '- ScanSnap Home Version',
+      '- Screenshot der vollständigen Fehlermeldung'
+    ].join('\\n');
+
     return `Guten Tag,
 
 vielen Dank für Ihre Geduld, während wir den gemeldeten Fall zu Ihrem ${model} weiter prüfen.
 
 Damit wir die nächsten Schritte korrekt einleiten können, benötigen wir bitte noch folgende Informationen:
 
-${fieldList || '- Betriebssystem inklusive Version
-- ScanSnap Home Version
-- Screenshot der vollständigen Fehlermeldung'}
+${fieldList || fallback}
 
 Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im bestehenden Vorgang dokumentiert bleiben und kein zusätzlicher Doppelvorgang entsteht. Wenn Sie uns telefonisch kontaktieren, nennen Sie bitte Ihre Fallnummer, damit wir Ihren bestehenden Vorgang direkt aufrufen können.
 
@@ -386,15 +389,19 @@ Marina Karlovic
 PFU Support Team`;
   }
 
+  const fallback = [
+    '- Operating system including version',
+    '- ScanSnap Home version',
+    '- Screenshot of the full error message'
+  ].join('\\n');
+
   return `Dear Customer,
 
 Thank you for your continued patience while we work to resolve the issue with your ${model}.
 
 To proceed with the next steps, we require the following additional information:
 
-${fieldList || '- Operating system including version
-- ScanSnap Home version
-- Screenshot of the full error message'}
+${fieldList || fallback}
 
 Please reply directly to this email so all information remains documented in the existing case and no duplicate case is created. If you contact us by phone, please mention your case number so we can locate the existing case immediately.
 
