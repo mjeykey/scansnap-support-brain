@@ -246,6 +246,72 @@ function BrainButton({ active, disabled, analyzing, onClick, language = 'de' }) 
   );
 }
 
+
+const VALID_MODEL_PATTERNS = [
+  /^iX\d{2,4}$/i,              // iX100, iX500, iX1300, iX1400, iX1500, iX1600, iX2500
+  /^S\d{4}i?$/i,               // S1100, S1100i, S1300, S1300i, S1500
+  /^SV\d{3,4}$/i,              // SV600
+  /^ScanSnap\s*iX\d{2,4}$/i,
+  /^ScanSnap\s*S\d{4}i?$/i,
+  /^ScanSnap\s*SV\d{3,4}$/i,
+];
+
+const PROBLEM_KEYWORDS = [
+  'fehler','error','nicht','not','erkannt','detected','verbindung','connection','usb','wlan','wifi','wi-fi',
+  'scan','scannen','scanner','papier','paper','stau','jam','streifen','line','ocr','installation','install',
+  'firmware','update','cloud','profil','profile','startet','crash','öffnet','open','meldung','message',
+  'code','-6','0x','gerät','device','manager','home','scanbutton','taste','led','orange','rot','red'
+];
+
+function looksLikeScannerModel(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return false;
+  if (/^[a-z]{4,}$/i.test(raw) && !/(scan|snap|ix|sv)/i.test(raw)) return false;
+  const compact = raw.replace(/\s+/g, '').replace(/[–—]/g, '-');
+  return VALID_MODEL_PATTERNS.some(rx => rx.test(compact));
+}
+
+function looksLikeProblemText(value) {
+  const raw = String(value || '').trim();
+  const compact = raw.replace(/\s+/g, '');
+  const lower = raw.toLowerCase();
+
+  // Empty / too short / repeated characters
+  if (raw.length < 8) return false;
+  if (/^(.)\1{4,}$/i.test(compact)) return false;
+
+  // Known valid error formats may be short, but must look like a real error.
+  if (/(fehler|error|code|err|0x|-\d{1,4})/i.test(raw) && raw.length >= 5) return true;
+
+  // Random letters or random alphanumeric strings without words are not a problem description.
+  if (/^[a-z0-9]{4,30}$/i.test(compact)) return false;
+
+  // Require either a known support keyword or a natural sentence with at least 3 words.
+  const hasKeyword = PROBLEM_KEYWORDS.some(k => lower.includes(k));
+  const wordCount = raw.split(/\s+/).filter(Boolean).length;
+  const hasVowels = /[aeiouäöü]/i.test(raw);
+
+  if (!hasKeyword && wordCount < 3) return false;
+  if (!hasVowels && !/\d|0x|-/i.test(raw)) return false;
+
+  // Extra block for keyboard-smash-like strings.
+  const lettersOnly = compact.replace(/[^a-z]/gi, '');
+  if (lettersOnly.length >= 6 && !hasKeyword && wordCount < 4) return false;
+
+  return hasKeyword || wordCount >= 3;
+}
+
+function validationMessage(step, language) {
+  if (language === 'de') {
+    if (step === 1) return 'Bitte geben Sie eine echte ScanSnap-Modellbezeichnung ein, z. B. iX1600, iX1400, iX2500, iX500, S1300i oder SV600.';
+    if (step === 3) return 'Bitte geben Sie eine echte Fehlerbeschreibung ein, z. B. Fehlermeldung, Verhalten, Verbindung oder was genau nicht funktioniert. Zufällige Buchstaben wie csdfrx werden nicht akzeptiert.';
+  }
+  if (step === 1) return 'Please enter a real ScanSnap model, e.g. iX1600, iX1400, iX2500, iX500, S1300i or SV600.';
+  if (step === 3) return 'Please enter a real issue description, e.g. error message, behaviour, connection or what exactly is not working. Random letters like csdfrx are not accepted.';
+  return '';
+}
+
+
 export default function Home() {
   const navigate = useNavigate();
   const existingSession = getSession();
@@ -261,13 +327,16 @@ export default function Home() {
   const detected = useMemo(() => detectModelFromText(`${model} ${problem}`), [model, problem]);
   const modelValue = normalizeModelInput(model || detected.detected || '');
 
+  const modelIsValid = looksLikeScannerModel(modelValue);
+  const problemIsValid = looksLikeProblemText(problem);
+
   const currentValid =
     step === 0 ? supporterName.trim().length > 0 :
-    step === 1 ? modelValue.trim().length > 1 :
+    step === 1 ? modelIsValid :
     step === 2 ? !!connectionType :
-    problem.trim().length > 3;
+    problemIsValid;
 
-  const readyForAnalysis = supporterName.trim() && modelValue.trim() && connectionType && problem.trim().length > 3;
+  const readyForAnalysis = supporterName.trim() && modelIsValid && connectionType && problemIsValid;
 
   const handleLanguage = (value) => {
     setLanguage(value);
@@ -277,7 +346,12 @@ export default function Home() {
   const goBack = () => setStep((s) => Math.max(0, s - 1));
 
   const continueOrAnalyze = () => {
-    if (!currentValid || analyzing) return;
+    if (analyzing) return;
+    if (!currentValid) {
+      const msg = validationMessage(step, language);
+      if (msg) window.alert(msg);
+      return;
+    }
     if (step < 3) {
       setStep((s) => s + 1);
       return;
@@ -373,7 +447,11 @@ export default function Home() {
   };
 
   const handleAnalyze = () => {
-    if (!readyForAnalysis || analyzing) return;
+    if (!readyForAnalysis || analyzing) {
+      const msg = validationMessage(!modelIsValid ? 1 : !problemIsValid ? 3 : step, language);
+      if (msg) window.alert(msg);
+      return;
+    }
     setAnalyzing(true);
     updateSettings({ emailLanguage: language });
 
