@@ -133,7 +133,6 @@ function sourceOpening(session, lang = 'de') {
       live_chat: 'Obrigado pelo contacto através do Live Chat.',
       webportal: 'Obrigado pelo seu pedido através do Webportal.',
       self_registration_portal: 'Obrigado pelo seu pedido através do portal de autorregisto.',
-      online: 'Obrigado pelo seu pedido online.',
     };
     return `Bom dia,\n\n${map[source] || map.email}`;
   }
@@ -145,7 +144,6 @@ function sourceOpening(session, lang = 'de') {
       live_chat: 'Thank you for contacting us via Live Chat.',
       webportal: 'Thank you for your request via the web portal.',
       self_registration_portal: 'Thank you for your request via the self-registration portal.',
-      online: 'Thank you for your online request.',
     };
     return `Hello,\n\n${map[source] || map.email}`;
   }
@@ -156,7 +154,6 @@ function sourceOpening(session, lang = 'de') {
     live_chat: 'vielen Dank für den Kontakt über den Live Chat.',
     webportal: 'vielen Dank für Ihre Anfrage über das Webportal.',
     self_registration_portal: 'vielen Dank für Ihre Anfrage über das Selbstregistrierungsportal.',
-    online: 'vielen Dank für Ihre Online-Anfrage.',
   };
   return `Guten Tag,\n\n${map[source] || map.email}`;
 }

@@ -47,21 +47,32 @@ const CONNECTION_OPTIONS = [
   { value: 'USB', label: 'USB' },
   { value: 'Wi-Fi', label: 'WLAN / Wi‑Fi' },
   { value: 'LAN', label: 'LAN' },
-  { value: 'Cloud', label: 'Cloud' },
   { value: 'unknown', label: 'Unbekannt' },
 ];
 
 
-const OS_OPTIONS = [
-  { value: 'windows', label: 'Windows' },
-  { value: 'macos', label: 'macOS' },
-  { value: 'ios', label: 'iOS' },
+const WINDOWS_OS_OPTIONS = [
+  { value: 'windows_11', label: 'Windows 11' },
+  { value: 'windows_10', label: 'Windows 10' },
+];
+
+const MAC_OS_OPTIONS = [
+  { value: 'macos_tahoe_26', label: 'macOS Tahoe 26' },
+  { value: 'macos_sequoia_15', label: 'macOS Sequoia 15' },
+  { value: 'macos_sonoma_14', label: 'macOS Sonoma 14' },
+  { value: 'macos_ventura_13', label: 'macOS Ventura 13' },
+  { value: 'macos_monterey_12', label: 'macOS Monterey 12' },
+];
+
+const OTHER_OS_OPTIONS = [
+  { value: 'windows_arm_snapdragon', label: 'Windows on ARM / Snapdragon' },
+  { value: 'ios_ipados', label: 'iOS / iPadOS' },
   { value: 'android', label: 'Android' },
-  { value: 'windows_arm', label: 'Windows on ARM / Snapdragon' },
-  { value: 'macos_modern', label: 'Modernes Apple OS' },
-  { value: 'wifi_adapter_builtin', label: 'WLAN-Adapter / integriert' },
+  { value: 'other_unsupported', label: 'Andere / nicht unterstützte Umgebung' },
   { value: 'unknown', label: 'Unbekannt' },
 ];
+
+const OS_OPTIONS = [...WINDOWS_OS_OPTIONS, ...MAC_OS_OPTIONS, ...OTHER_OS_OPTIONS];
 
 const SOURCE_OPTIONS = [
   { value: 'phone', label: 'Telefon' },
@@ -69,11 +80,14 @@ const SOURCE_OPTIONS = [
   { value: 'live_chat', label: 'Live Chat' },
   { value: 'webportal', label: 'Webportal' },
   { value: 'self_registration_portal', label: 'Selbstregistrierungsportal' },
-  { value: 'online', label: 'Online' },
 ];
 
 function osLabel(value) {
   return OS_OPTIONS.find(o => o.value === value)?.label || value || 'Unbekannt';
+}
+
+function groupValue(value, options) {
+  return options.some(o => o.value === value) ? value : '';
 }
 
 function sourceLabel(value) {
@@ -701,17 +715,63 @@ export default function Home() {
                 )}
 
                 {step === 4 && (
-                  <div className="grid grid-cols-2 gap-3">
-                    {OS_OPTIONS.map((o) => (
-                      <button
-                        key={o.value}
-                        onClick={() => setOsType(o.value)}
-                        className={`rounded-2xl px-4 py-4 text-sm text-center transition-all ${osType === o.value ? 'bg-fuchsia-500/18 border-fuchsia-400/70 text-white shadow-[0_0_28px_rgba(255,45,170,0.22)]' : 'bg-black/20 border-cyan-300/18 text-white/76 hover:bg-cyan-400/8 hover:border-cyan-300/45'}`}
-                        style={{ borderWidth: 1 }}
+                  <div className="space-y-4">
+                    <div
+                      className="rounded-2xl p-4"
+                      style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(120,240,255,0.16)' }}
+                    >
+                      <label className="block text-xs uppercase tracking-[0.18em] text-cyan-200/75 mb-2">
+                        Windows
+                      </label>
+                      <select
+                        value={groupValue(osType, WINDOWS_OS_OPTIONS)}
+                        onChange={(e) => setOsType(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '12px 14px', height: 48 }}
                       >
-                        {o.label}
-                      </button>
-                    ))}
+                        <option value="">Bitte auswählen</option>
+                        {WINDOWS_OS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div
+                      className="rounded-2xl p-4"
+                      style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(120,240,255,0.16)' }}
+                    >
+                      <label className="block text-xs uppercase tracking-[0.18em] text-cyan-200/75 mb-2">
+                        macOS
+                      </label>
+                      <select
+                        value={groupValue(osType, MAC_OS_OPTIONS)}
+                        onChange={(e) => setOsType(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '12px 14px', height: 48 }}
+                      >
+                        <option value="">Bitte auswählen</option>
+                        {MAC_OS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div
+                      className="rounded-2xl p-4"
+                      style={{ background: 'rgba(0,0,0,0.22)', border: '1px solid rgba(120,240,255,0.16)' }}
+                    >
+                      <label className="block text-xs uppercase tracking-[0.18em] text-cyan-200/75 mb-2">
+                        Selten / speziell
+                      </label>
+                      <select
+                        value={groupValue(osType, OTHER_OS_OPTIONS)}
+                        onChange={(e) => setOsType(e.target.value)}
+                        style={{ ...inputStyle, width: '100%', padding: '12px 14px', height: 48 }}
+                      >
+                        <option value="">Bitte auswählen</option>
+                        {OTHER_OS_OPTIONS.map((o) => (
+                          <option key={o.value} value={o.value}>{o.label}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 )}
 
