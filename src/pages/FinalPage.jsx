@@ -4,7 +4,7 @@
 // case summary, escalation — ALL LOCAL, ZERO AI credits.
 // ============================================================
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
@@ -28,11 +28,9 @@ const MISSING_INFO_LABELS = {
     connectivity: 'Verbindungstyp (USB / WLAN / LAN)',
     os: 'Betriebssystem',
     serial: 'Scanner-Seriennummer',
+    address: 'Kundenadresse',
     scan_count: 'Scananzahl / Lifetime Counter',
-    error_screenshot: 'Screenshot der Fehlermeldung',
-    device_manager: 'Screenshot/Foto aus dem Geräte-Manager',
-    ssh_version: 'ScanSnap Home Version',
-    firmware_version: 'Firmware-Version',
+    country: 'Land des Kunden',
     button: 'Kunden-E-Mail zur Anforderung fehlender Informationen erstellen',
     customerEmailTitle: 'KUNDEN-E-MAIL — ANFORDERUNG FEHLENDER INFORMATIONEN',
     copyEmail: 'E-Mail kopieren',
@@ -42,109 +40,52 @@ const MISSING_INFO_LABELS = {
     connectivity: 'Connectivity type (USB / Wi-Fi / LAN)',
     os: 'Operating system',
     serial: 'Scanner serial number',
+    address: 'Customer address',
     scan_count: 'Scan count / Lifetime counter',
-    error_screenshot: 'Screenshot of the error message',
-    device_manager: 'Screenshot/photo from Device Manager',
-    ssh_version: 'ScanSnap Home version',
-    firmware_version: 'Firmware version',
+    country: 'Customer country',
     button: 'Generate customer email to request missing information',
     customerEmailTitle: 'CUSTOMER EMAIL — MISSING INFORMATION REQUEST',
     copyEmail: 'Copy Email',
   }
 };
 
-function normalizeSupportLang(lang, session = {}) {
-  const raw = String(lang || session?.supportLanguage || session?.emailLanguage || session?.language || 'de').toLowerCase();
-  if (raw.startsWith('de')) return 'de';
-  if (raw.startsWith('en')) return 'en';
-  return raw || 'de';
-}
-
-function sanitizeMissingInfoEmailText(text, lang, session = {}) {
-  const l = normalizeSupportLang(lang, session);
-  let cleaned = String(text || '')
-    .replace(/\n-\s*Customer delivery address/gi, '')
-    .replace(/\n-\s*Customer country/gi, '')
-    .replace(/\n-\s*Warranty status confirmed/gi, '')
-    .replace(/\n-\s*Customer address/gi, '')
-    .replace(/\n-\s*Kundenadresse/gi, '')
-    .replace(/\n-\s*Land des Kunden/gi, '')
-    .replace(/\n-\s*Garantiestatus bestätigt/gi, '');
-
-  const looksLikeMissingInfo =
-    /missing information|additional information|next steps|escalation|weiteren schritte|fehlende informationen/i.test(cleaned);
-
-  if (l === 'de' && looksLikeMissingInfo && /Dear Customer|Thank you for your continued patience|To proceed with the next steps|Best regards|Kind regards/i.test(cleaned)) {
-    return buildMissingInfoEmail('de', session?.model || session?.device, session);
-  }
-  return cleaned;
-}
-
-function buildMissingInfoEmail(lang, model, session = {}) {
-  const l = normalizeSupportLang(lang, session);
-  const scanner = model || session?.model || session?.device || (l === 'de' ? 'Scanner' : 'scanner');
-
-  const context = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.performedSteps || []).map(s => s.title || '').join(' ')}`;
-  const isUsbCase = /usb|nicht erkannt|not detect|geräte-manager|device manager|0x80211001/i.test(context);
-  const isFirmwareCase = /firmware|update|recovery/i.test(context);
-
-  const deItems = [
-    'Verbindungstyp (USB / WLAN / LAN)',
-    'Betriebssystem inklusive Version',
-    'Scanner-Seriennummer',
-    'Scananzahl / Lifetime Counter',
-    'Screenshot der vollständigen Fehlermeldung',
-    'Aktuell installierte ScanSnap Home Version'
-  ];
-  const enItems = [
-    'Connectivity type (USB / Wi-Fi / LAN)',
-    'Operating system including version',
-    'Scanner serial number',
-    'Scan count / Lifetime counter',
-    'Screenshot of the full error message',
-    'Currently installed ScanSnap Home version'
-  ];
-
-  if (isUsbCase) {
-    deItems.push('Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist');
-    enItems.push('Screenshot or photo from Windows Device Manager showing the scanner or unknown device');
-  }
-
-  if (isFirmwareCase) {
-    deItems.push('Aktuell installierte Firmware-Version des Scanners');
-    enItems.push('Currently installed scanner firmware version');
-  }
-
+function buildMissingInfoEmail(lang, model) {
+  const l = (lang || 'de').toLowerCase();
   if (l === 'de') {
     return `Guten Tag,
 
-vielen Dank für Ihre Geduld, während wir den gemeldeten Fall zu Ihrem ${scanner} weiter prüfen.
+vielen Dank für Ihre Geduld, während wir den gemeldeten Fall zu Ihrem ${model || 'Scanner'} weiter prüfen.
 
 Damit wir die nächsten Schritte korrekt einleiten können, benötigen wir bitte noch folgende Informationen:
 
-${deItems.map(item => `- ${item}`).join('
-')}
+- Verbindungstyp (USB / WLAN / LAN)
+- Betriebssystem
+- Scanner-Seriennummer
+- Kundenadresse
+- Scananzahl / Lifetime Counter
+- Land des Kunden
 
-Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im bestehenden Vorgang dokumentiert bleiben und kein zusätzlicher Doppelvorgang entsteht. Wenn Sie uns telefonisch kontaktieren, nennen Sie bitte Ihre Fallnummer, damit wir Ihren bestehenden Vorgang direkt aufrufen können.
+Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im bestehenden Vorgang dokumentiert bleiben.
 
 Mit freundlichen Grüßen
-Marina Karlovic
 PFU Support Team`;
   }
-
   return `Dear Customer,
 
-Thank you for your continued patience while we work to resolve the issue with your ${scanner}.
+Thank you for your continued patience while we work to resolve the issue with your ${model || 'scanner'}.
 
 To proceed with the next steps, we require the following additional information:
 
-${enItems.map(item => `- ${item}`).join('
-')}
+- Connectivity type (USB / Wi-Fi / LAN)
+- Operating system
+- Scanner serial number
+- Customer address
+- Scan count / Lifetime counter
+- Customer country
 
-Please reply directly to this email so all information remains documented in the existing case and no duplicate case is created. If you contact us by phone, please mention your case number so we can locate the existing case immediately.
+Please reply directly to this email so all information remains documented in the existing case.
 
 Kind regards
-Marina Karlovic
 PFU Support Team`;
 }
 
@@ -181,117 +122,164 @@ function Section({ title, children, defaultOpen = true }) {
 
 // ── Email Module Builder ─────────────────────────────────────
 
-const EXTRA_REQUEST_MODULES = [
-  {
-    key: 'request_error_screenshot',
-    category: 'request',
-    label: { de: 'Fehlermeldung als Screenshot anfordern', en: 'Request screenshot of the error message' },
-    text: { de: 'Bitte senden Sie uns einen Screenshot der vollständigen Fehlermeldung.', en: 'Please send us a screenshot of the full error message.' },
-  },
-  {
-    key: 'request_device_manager_photo',
-    category: 'request',
-    label: { de: 'Geräte-Manager Screenshot/Foto anfordern', en: 'Request Device Manager screenshot/photo' },
-    text: { de: 'Bei USB-Problemen senden Sie uns bitte zusätzlich einen Screenshot oder ein Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist.', en: 'For USB issues, please also send a screenshot or photo from Windows Device Manager showing the scanner or unknown device.' },
-  },
-  {
-    key: 'request_sshome_version',
-    category: 'request',
-    label: { de: 'ScanSnap Home (SSH) Version anfragen', en: 'Request ScanSnap Home version' },
-    text: { de: 'Bitte teilen Sie uns außerdem mit, welche ScanSnap Home Version aktuell installiert ist.', en: 'Please also let us know which ScanSnap Home version is currently installed.' },
-  },
-  {
-    key: 'request_firmware_version',
-    category: 'request',
-    label: { de: 'Firmware-Version anfragen', en: 'Request firmware version' },
-    text: { de: 'Bitte teilen Sie uns zusätzlich die aktuell installierte Firmware-Version des Scanners mit.', en: 'Please also let us know the scanner firmware version currently installed.' },
-  },
-  {
-    key: 'request_os_version',
-    category: 'request',
-    label: { de: 'Betriebssystem anfragen', en: 'Request operating system' },
-    text: { de: 'Bitte nennen Sie uns außerdem Ihr Betriebssystem inklusive Versionsstand.', en: 'Please also tell us which operating system and version you are using.' },
-  },
-];
-
-function getSuggestedExtraModules(session) {
-  const text = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.performedSteps || []).map(s => s.title || '').join(' ')}`.toLowerCase();
-  const result = [];
-  if (/usb|geräte-manager|device manager|nicht erkannt|not detect|0x80211001/.test(text)) {
-    result.push('request_device_manager_photo', 'request_error_screenshot', 'request_os_version', 'request_sshome_version');
-  }
-  if (/firmware|update|recovery/.test(text)) {
-    result.push('request_firmware_version');
-  }
-  if (!session?.os) result.push('request_os_version');
-  if (/scansnap home|installation|pfussmon|software|ocr|image processing|home/.test(text)) {
-    result.push('request_sshome_version');
-  }
-  return Array.from(new Set(result));
-}
-
-function buildExtraRequestLines(selectedExtraKeys, lang) {
-  const selectedExtra = EXTRA_REQUEST_MODULES.filter(mod => selectedExtraKeys.includes(mod.key));
-  if (!selectedExtra.length) return '';
-  const intro = lang === 'de'
-    ? 'Für die weitere Prüfung benötigen wir bitte noch folgende Informationen:'
-    : 'For the further review, we still need the following information:';
-  return `${intro}\n\n${selectedExtra.map(mod => `- ${mod.text[lang] || mod.text.en}`).join('\n')}`;
-}
-
 function EmailBuilder({ session, brain, lang }) {
-  const baseSuggested = useMemo(() => suggestModules(session, brain), [session, brain]);
-  const extraSuggested = useMemo(() => getSuggestedExtraModules(session), [session]);
-  const suggested = useMemo(() => Array.from(new Set([...(baseSuggested || []), ...extraSuggested])), [baseSuggested, extraSuggested]);
+  const suggested = useMemo(() => suggestModules(session, brain), [session, brain]);
   const [selected, setSelected] = useState(suggested);
   const [emailText, setEmailText] = useState('');
   const [built, setBuilt] = useState(false);
   const ui = getUI(lang);
-  const extraKeys = EXTRA_REQUEST_MODULES.map(m => m.key);
 
   const groups = {
     troubleshooting: Object.values(EMAIL_MODULES).filter(m => m.category === 'troubleshooting'),
-    request: [...Object.values(EMAIL_MODULES).filter(m => m.category === 'request'), ...EXTRA_REQUEST_MODULES],
+    request: Object.values(EMAIL_MODULES).filter(m => m.category === 'request'),
     status: Object.values(EMAIL_MODULES).filter(m => m.category === 'status' && m.key !== 'greeting' && m.key !== 'closing'),
   };
 
   const GROUP_LABELS = {
     troubleshooting: { de: 'Troubleshooting-Schritte', en: 'Troubleshooting Steps', fr: 'Étapes de dépannage', es: 'Pasos de resolución', pt: 'Etapas de resolução', it: 'Passaggi di risoluzione', nl: 'Probleemoplossing stappen', ja: 'トラブルシューティング手順', zh: '故障排除步骤' },
-    request: { de: 'Informationsanfragen', en: 'Information Requests', fr: 'Demandes d\'informations', es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
+    request: { de: 'Informationsanfragen', en: 'Information Requests', fr: 'Demandes d\\'informations', es: 'Solicitudes de información', pt: 'Solicitações de informação', it: 'Richieste di informazioni', nl: 'Informatieverzoeken', ja: '情報要求', zh: '信息请求' },
     status: { de: 'Statusmeldungen', en: 'Status Messages', fr: 'Messages de statut', es: 'Mensajes de estado', pt: 'Mensagens de status', it: 'Messaggi di stato', nl: 'Statusberichten', ja: 'ステータスメッセージ', zh: '状态消息' },
   };
 
+  const moduleStepPatterns = {
+    usb_direct: /usb|direkt|direct|anschluss|cable|kabel/i,
+    firmware_update_normal: /firmware|update/i,
+    sshomeclean: /sshome|cleanup|bereinig|reinstall|neu install|scansnap home/i,
+    sfc_dism: /sfc|dism|integrity|systemintegrität|windows/i,
+    device_manager_usb: /geräte-manager|device manager|usb-stack|usb stack/i,
+    firmware_recovery_instructions: /recovery|top sensor|empty arm|firmware-wiederherstellung/i,
+  };
+
+  const normalize = (value) => String(value || '').toLowerCase();
+  const getText = (key) => getModuleText(key, lang) || getModuleText(key, 'de') || getModuleText(key, 'en') || '';
+  const isDe = normalize(lang).startsWith('de');
+
+  const resultLabel = (status) => {
+    const de = {
+      solved: 'Problem behoben',
+      done: 'durchgeführt',
+      not_solved: 'durchgeführt, Problem nicht behoben',
+      not_possible: 'nicht möglich',
+      skipped: 'übersprungen',
+      blocked: 'blockiert',
+      waiting_customer: 'wartet auf Rückmeldung',
+    };
+    const en = {
+      solved: 'issue resolved',
+      done: 'completed',
+      not_solved: 'completed, issue not resolved',
+      not_possible: 'not possible',
+      skipped: 'skipped',
+      blocked: 'blocked',
+      waiting_customer: 'awaiting customer response',
+    };
+    return (isDe ? de : en)[status] || status || '';
+  };
+
+  const stepTitle = (step) => {
+    const raw = step?.title || step?.instruction || step?.body || step?.stepId || (isDe ? 'Schritt' : 'Step');
+    return String(raw).replace(/^Ich prüfe gerade\\s*[„"']?/i, '').replace(/[„"']$/g, '').trim();
+  };
+
+  const selectedTroubleshootingKeys = (keys) =>
+    keys.filter(k => EMAIL_MODULES[k]?.category === 'troubleshooting');
+
+  const selectedRequestKeys = (keys) =>
+    keys.filter(k => EMAIL_MODULES[k]?.category === 'request');
+
+  const selectedStatusKeys = (keys) =>
+    keys.filter(k => EMAIL_MODULES[k]?.category === 'status');
+
+  const analysisLinesForSelected = (keys) => {
+    const tKeys = selectedTroubleshootingKeys(keys);
+    if (!tKeys.length) return [];
+
+    const steps = (session?.steps || []).filter(step =>
+      ['solved', 'done', 'not_solved', 'not_possible', 'skipped', 'blocked', 'waiting_customer'].includes(step.status)
+    );
+
+    return steps.filter(step => {
+      const combined = `${step?.title || ''} ${step?.instruction || ''} ${step?.stepId || ''}`;
+      return tKeys.some(key => moduleStepPatterns[key]?.test(combined));
+    }).map(step => `- ${stepTitle(step)}: ${resultLabel(step.status)}`);
+  };
+
+  const requestBlockForSelected = (keys) => {
+    const requestKeys = selectedRequestKeys(keys);
+    if (!requestKeys.length) return '';
+
+    const lines = [];
+    requestKeys.forEach(key => {
+      if (key === 'missing_info_request') {
+        // This module is analysis-aware, but still controlled by the checkbox.
+        if (!session?.os && !session?.knownFacts?.os) lines.push(isDe ? 'Betriebssystem inklusive Version' : 'Operating system including version');
+        if (!session?.connectionType && !session?.knownFacts?.connectionType) lines.push(isDe ? 'Verbindungstyp (USB / WLAN / LAN)' : 'Connectivity type (USB / Wi-Fi / LAN)');
+        lines.push(isDe ? 'Screenshot der vollständigen Fehlermeldung' : 'Screenshot of the full error message');
+        return;
+      }
+
+      const text = getText(key).trim();
+      if (!text) return;
+      lines.push(text.replace(/^Bitte\\s+/i, '').replace(/^Please\\s+/i, ''));
+    });
+
+    if (!lines.length) return '';
+    return `${isDe ? 'Für die nächste Prüfung benötigen wir bitte noch folgende Informationen:' : 'For the next review, we still need the following information:'}\\n\\n${lines.map(line => `- ${line}`).join('\\n')}`;
+  };
+
+  const statusBlockForSelected = (keys) => {
+    const statusKeys = selectedStatusKeys(keys);
+    const blocks = statusKeys.map(key => getText(key).trim()).filter(Boolean);
+    return blocks.join('\\n\\n');
+  };
+
+  const buildSelectedEmail = (keys = selected) => {
+    const unique = [...new Set(keys)];
+    const model = session?.model || session?.device || session?.knownFacts?.model || (isDe ? 'Scanner' : 'scanner');
+
+    const parts = [];
+    parts.push(isDe
+      ? 'Guten Tag,\\n\\nvielen Dank für Ihre Rückmeldung.'
+      : 'Hello,\\n\\nThank you for your feedback.'
+    );
+
+    const analysisLines = analysisLinesForSelected(unique);
+    if (analysisLines.length) {
+      parts.push(isDe
+        ? `Gemäß der dokumentierten Analyse wurden die folgenden ausgewählten Schritte für Ihren ${model} bereits durchgeführt:\\n\\n${analysisLines.join('\\n')}`
+        : `According to the documented analysis, the following selected steps have already been performed for your ${model}:\\n\\n${analysisLines.join('\\n')}`
+      );
+    }
+
+    const requestBlock = requestBlockForSelected(unique);
+    if (requestBlock) parts.push(requestBlock);
+
+    const statusBlock = statusBlockForSelected(unique);
+    if (statusBlock) parts.push(statusBlock);
+
+    let closing = getText('closing');
+    closing = closing.replaceAll('[Supporter Name]', session?.supporterName || 'Marina Karlovic');
+    parts.push(closing);
+
+    return parts.filter(Boolean).join('\\n\\n').replace(/\\n{3,}/g, '\\n\\n');
+  };
+
   const toggle = (key) => {
-    setBuilt(false);
-    setSelected(prev => prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]);
+    setSelected(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key];
+      if (built) setEmailText(buildSelectedEmail(next));
+      return next;
+    });
   };
 
   const buildEmail = () => {
-    const baseSelected = selected.filter(key => !extraKeys.includes(key));
-    const selectedExtra = selected.filter(key => extraKeys.includes(key));
-    let text = '';
-    try {
-      text = assembleEmail(baseSelected, lang, session?.supporterName || '', session);
-    } catch (err) {
-      console.error('Email generation failed:', err);
-      text = assembleEmail(baseSelected, lang, session?.supporterName || '', session);
-    }
-
-    const extraBlock = buildExtraRequestLines(selectedExtra, lang);
-    if (extraBlock) {
-      const closingDE = 'Mit freundlichen Grüßen';
-      const closingEN = 'Kind regards';
-      if (lang === 'de' && text.includes(closingDE)) {
-        text = text.replace(closingDE, `${extraBlock}\n\n${closingDE}`);
-      } else if (lang !== 'de' && text.includes(closingEN)) {
-        text = text.replace(closingEN, `${extraBlock}\n\n${closingEN}`);
-      } else {
-        text = `${text.trim()}\n\n${extraBlock}`;
-      }
-    }
-    setEmailText(sanitizeMissingInfoEmailText(text, lang, session));
+    setEmailText(buildSelectedEmail(selected));
     setBuilt(true);
   };
+
+  useEffect(() => {
+    if (built) setEmailText(buildSelectedEmail(selected));
+  }, [selected, lang]);
 
   const copy = () => { navigator.clipboard.writeText(emailText); toast.success('Email copied'); };
 
@@ -300,24 +288,32 @@ function EmailBuilder({ session, brain, lang }) {
       {Object.entries(groups).map(([groupKey, modules]) => (
         <div key={groupKey}>
           <p className="text-[9px] font-bold uppercase tracking-widest text-white/25 mb-2">
-            {GROUP_LABELS[groupKey][lang] || GROUP_LABELS[groupKey].en}
+            {GROUP_LABELS[groupKey][lang] || GROUP_LABELS[groupKey]['en']}
           </p>
           <div className="space-y-1.5">
             {modules.map(mod => {
               const isSuggested = suggested.includes(mod.key);
               const isSelected = selected.includes(mod.key);
-              const label = mod.label[lang] || mod.label.en;
+              const label = mod.label[lang] || mod.label['en'];
               return (
                 <button
                   key={mod.key}
                   onClick={() => toggle(mod.key)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all ${isSelected ? 'bg-primary/12 border border-primary/30' : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]'}`}
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-left transition-all ${
+                    isSelected
+                      ? 'bg-primary/12 border border-primary/30'
+                      : 'bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06]'
+                  }`}
                 >
-                  <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${isSelected ? 'bg-primary border-primary' : 'border-white/20'}`}>
+                  <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all shrink-0 ${
+                    isSelected ? 'bg-primary border-primary' : 'border-white/20'
+                  }`}>
                     {isSelected && <CheckCircle2 className="w-3 h-3 text-white" />}
                   </div>
                   <span className={`text-xs ${isSelected ? 'text-white/80' : 'text-white/40'}`}>{label}</span>
-                  {isSuggested && <span className="ml-auto text-[9px] text-primary/60 uppercase tracking-wider shrink-0">suggested</span>}
+                  {isSuggested && (
+                    <span className="ml-auto text-[9px] text-primary/60 uppercase tracking-wider shrink-0">suggested</span>
+                  )}
                 </button>
               );
             })}
@@ -339,7 +335,10 @@ function EmailBuilder({ session, brain, lang }) {
       <AnimatePresence>
         {built && emailText && (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-            <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(248,248,252,0.98)', border: '1px solid rgba(45,212,191,0.2)' }}>
+            <div
+              className="rounded-xl overflow-hidden"
+              style={{ background: 'rgba(248,248,252,0.98)', border: '1px solid rgba(45,212,191,0.2)' }}
+            >
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/6">
                 <div className="flex items-center gap-2">
                   <Mail className="w-3.5 h-3.5 text-primary" />
@@ -361,7 +360,7 @@ function EmailBuilder({ session, brain, lang }) {
 }
 
 // ── Case Summary ─────────────────────────────────────────────
- ─────────────────────────────────────────────
+
 
 
 function LocalCaseSummary({ session, lang }) {

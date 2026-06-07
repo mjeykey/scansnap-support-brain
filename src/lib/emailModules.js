@@ -296,34 +296,27 @@ function filterKnownInfoLines(text, lang, session = {}) {
 
 // ── Assemble email from selected module keys ─────────────────
 export function assembleEmail(selectedKeys, lang, supporterName = '', session = {}) {
-  const safeLang = (lang || 'de').toLowerCase();
-  const selected = Array.isArray(selectedKeys) ? selectedKeys : [];
-  const uniqueSelected = [...new Set(selected)];
-
   const parts = [];
-  parts.push(getModuleText('greeting', safeLang));
 
+  // Always start with greeting
+  parts.push(getModuleText('greeting', lang));
+
+  // Add selected content modules (skip structural ones — handled separately)
   const structural = ['greeting', 'closing'];
-  const contentKeys = uniqueSelected.filter(k => !structural.includes(k));
-
+  const contentKeys = selectedKeys.filter(k => !structural.includes(k));
   for (const key of contentKeys) {
-    const text = getModuleText(key, safeLang);
-    if (text) {
-      const cleaned = filterKnownInfoLines(text, safeLang, session).trim();
-      if (cleaned) parts.push(cleaned);
-    }
+    const text = getModuleText(key, lang);
+    if (text) parts.push(filterKnownInfoLines(text, lang, session));
   }
 
-  let closing = getModuleText('closing', safeLang);
-  if (supporterName) closing = closing.replace('[Supporter Name]', supporterName);
+  // Always end with closing (replace PFU Support Team with supporter name if provided)
+  let closing = getModuleText('closing', lang);
+  if (supporterName) {
+    closing = closing.replace('PFU Support Team', supporterName);
+  }
   parts.push(closing);
 
-  return parts.filter(Boolean).join('
-
-').replace(/
-{3,}/g, '
-
-');
+  return parts.join('\n\n');
 }
 
 function completedOrFailedStepTitles(session = {}) {
@@ -377,12 +370,13 @@ export function suggestModules(session, brain) {
   if (filteredMissing.length > 0) suggested.push('missing_info_request');
 
 
-  const context = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.steps || []).map(s => `${s.title || ''} ${s.instruction || ''} ${s.stepId || ''}`).join(' ')}`.toLowerCase();
-  if (/usb|geräte-manager|device manager|nicht erkannt|not detect|0x80211001/.test(context)) {
+  const contextText = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.steps || []).map(s => `${s.title || ''} ${s.instruction || ''} ${s.stepId || ''}`).join(' ')}`.toLowerCase();
+  if (/usb|geräte-manager|device manager|nicht erkannt|not detect|0x80211001/.test(contextText)) {
     suggested.push('request_device_manager_photo', 'request_error_screenshot', 'request_os_version', 'request_sshome_version');
   }
-  if (/firmware|update|recovery/.test(context)) suggested.push('request_firmware_version');
+  if (/firmware|update|recovery/.test(contextText)) suggested.push('request_firmware_version');
   if (!session?.os && !session?.knownFacts?.os) suggested.push('request_os_version');
+
 
   // Screenshot only if state unclear, not just because model was already provided.
   if (brain?.scannerState === 'unknown') suggested.push('screenshot_request');
