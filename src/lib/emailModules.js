@@ -162,6 +162,57 @@ export const EMAIL_MODULES = {
     },
   },
 
+
+  request_error_screenshot: {
+    key: 'request_error_screenshot',
+    category: 'request',
+    label: { en: 'Error message screenshot', de: 'Fehlermeldung als Screenshot' },
+    text: {
+      de: 'Bitte senden Sie uns einen Screenshot der vollständigen Fehlermeldung.',
+      en: 'Please send us a screenshot of the full error message.',
+    },
+  },
+
+  request_device_manager_photo: {
+    key: 'request_device_manager_photo',
+    category: 'request',
+    label: { en: 'Device Manager screenshot/photo', de: 'Geräte-Manager Screenshot/Foto' },
+    text: {
+      de: 'Bitte senden Sie uns bei USB-Problemen zusätzlich einen Screenshot oder ein Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist.',
+      en: 'For USB issues, please also send us a screenshot or photo from Windows Device Manager showing the scanner or unknown device.',
+    },
+  },
+
+  request_sshome_version: {
+    key: 'request_sshome_version',
+    category: 'request',
+    label: { en: 'ScanSnap Home version', de: 'ScanSnap Home Version' },
+    text: {
+      de: 'Bitte teilen Sie uns außerdem mit, welche ScanSnap Home Version aktuell installiert ist.',
+      en: 'Please also let us know which ScanSnap Home version is currently installed.',
+    },
+  },
+
+  request_firmware_version: {
+    key: 'request_firmware_version',
+    category: 'request',
+    label: { en: 'Firmware version', de: 'Firmware-Version' },
+    text: {
+      de: 'Bitte teilen Sie uns zusätzlich die aktuell installierte Firmware-Version des Scanners mit.',
+      en: 'Please also let us know the scanner firmware version currently installed.',
+    },
+  },
+
+  request_os_version: {
+    key: 'request_os_version',
+    category: 'request',
+    label: { en: 'Operating system', de: 'Betriebssystem' },
+    text: {
+      de: 'Bitte nennen Sie uns außerdem Ihr Betriebssystem inklusive Versionsstand.',
+      en: 'Please also tell us which operating system and version you are using.',
+    },
+  },
+
   waiting_response: {
     key: 'waiting_response',
     category: 'status',
@@ -245,27 +296,34 @@ function filterKnownInfoLines(text, lang, session = {}) {
 
 // ── Assemble email from selected module keys ─────────────────
 export function assembleEmail(selectedKeys, lang, supporterName = '', session = {}) {
+  const safeLang = (lang || 'de').toLowerCase();
+  const selected = Array.isArray(selectedKeys) ? selectedKeys : [];
+  const uniqueSelected = [...new Set(selected)];
+
   const parts = [];
+  parts.push(getModuleText('greeting', safeLang));
 
-  // Always start with greeting
-  parts.push(getModuleText('greeting', lang));
-
-  // Add selected content modules (skip structural ones — handled separately)
   const structural = ['greeting', 'closing'];
-  const contentKeys = selectedKeys.filter(k => !structural.includes(k));
+  const contentKeys = uniqueSelected.filter(k => !structural.includes(k));
+
   for (const key of contentKeys) {
-    const text = getModuleText(key, lang);
-    if (text) parts.push(filterKnownInfoLines(text, lang, session));
+    const text = getModuleText(key, safeLang);
+    if (text) {
+      const cleaned = filterKnownInfoLines(text, safeLang, session).trim();
+      if (cleaned) parts.push(cleaned);
+    }
   }
 
-  // Always end with closing (replace PFU Support Team with supporter name if provided)
-  let closing = getModuleText('closing', lang);
-  if (supporterName) {
-    closing = closing.replace('PFU Support Team', supporterName);
-  }
+  let closing = getModuleText('closing', safeLang);
+  if (supporterName) closing = closing.replace('[Supporter Name]', supporterName);
   parts.push(closing);
 
-  return parts.join('\n\n');
+  return parts.filter(Boolean).join('
+
+').replace(/
+{3,}/g, '
+
+');
 }
 
 function completedOrFailedStepTitles(session = {}) {
@@ -317,6 +375,14 @@ export function suggestModules(session, brain) {
     return true;
   });
   if (filteredMissing.length > 0) suggested.push('missing_info_request');
+
+
+  const context = `${session?.problem || ''} ${session?.connectionType || ''} ${session?.issueType || ''} ${(session?.steps || []).map(s => `${s.title || ''} ${s.instruction || ''} ${s.stepId || ''}`).join(' ')}`.toLowerCase();
+  if (/usb|geräte-manager|device manager|nicht erkannt|not detect|0x80211001/.test(context)) {
+    suggested.push('request_device_manager_photo', 'request_error_screenshot', 'request_os_version', 'request_sshome_version');
+  }
+  if (/firmware|update|recovery/.test(context)) suggested.push('request_firmware_version');
+  if (!session?.os && !session?.knownFacts?.os) suggested.push('request_os_version');
 
   // Screenshot only if state unclear, not just because model was already provided.
   if (brain?.scannerState === 'unknown') suggested.push('screenshot_request');
