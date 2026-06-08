@@ -44,54 +44,91 @@ function connectionLabel(value, lang) {
 }
 
 const CONNECTION_OPTIONS = [
-  { value: 'USB', label: 'USB' },
-  { value: 'Wi-Fi', label: 'WLAN / Wi‑Fi' },
-  { value: 'LAN', label: 'LAN' },
-  { value: 'unknown', label: 'Unbekannt' },
+  { value: 'USB', label: { de: 'USB', en: 'USB', pt: 'USB', es: 'USB', fr: 'USB', it: 'USB', nl: 'USB', ja: 'USB' } },
+  { value: 'Wi-Fi', label: { de: 'WLAN / Wi‑Fi', en: 'Wi‑Fi', pt: 'Wi‑Fi', es: 'Wi‑Fi', fr: 'Wi‑Fi', it: 'Wi‑Fi', nl: 'Wi‑Fi', ja: 'Wi‑Fi' } },
+  { value: 'LAN', label: { de: 'LAN', en: 'LAN', pt: 'LAN', es: 'LAN', fr: 'LAN', it: 'LAN', nl: 'LAN', ja: 'LAN' } },
+  { value: 'unknown', label: { de: 'Unbekannt', en: 'Unknown', pt: 'Desconhecido', es: 'Desconocido', fr: 'Inconnu', it: 'Sconosciuto', nl: 'Onbekend', ja: '不明' } },
 ];
 
 
 const WINDOWS_OS_OPTIONS = [
-  { value: 'windows_11', label: 'Windows 11' },
-  { value: 'windows_10', label: 'Windows 10' },
+  { value: 'windows_11', label: { de: 'Windows 11', en: 'Windows 11', pt: 'Windows 11', es: 'Windows 11', fr: 'Windows 11', it: 'Windows 11', nl: 'Windows 11', ja: 'Windows 11' } },
+  { value: 'windows_10', label: { de: 'Windows 10', en: 'Windows 10', pt: 'Windows 10', es: 'Windows 10', fr: 'Windows 10', it: 'Windows 10', nl: 'Windows 10', ja: 'Windows 10' } },
 ];
 
 const MAC_OS_OPTIONS = [
-  { value: 'macos_tahoe_26', label: 'macOS Tahoe 26' },
-  { value: 'macos_sequoia_15', label: 'macOS Sequoia 15' },
-  { value: 'macos_sonoma_14', label: 'macOS Sonoma 14' },
-  { value: 'macos_ventura_13', label: 'macOS Ventura 13' },
-  { value: 'macos_monterey_12', label: 'macOS Monterey 12' },
+  { value: 'macos_tahoe_26', label: { de: 'macOS Tahoe 26', en: 'macOS Tahoe 26', pt: 'macOS Tahoe 26', es: 'macOS Tahoe 26', fr: 'macOS Tahoe 26', it: 'macOS Tahoe 26', nl: 'macOS Tahoe 26', ja: 'macOS Tahoe 26' } },
+  { value: 'macos_sequoia_15', label: { de: 'macOS Sequoia 15', en: 'macOS Sequoia 15', pt: 'macOS Sequoia 15', es: 'macOS Sequoia 15', fr: 'macOS Sequoia 15', it: 'macOS Sequoia 15', nl: 'macOS Sequoia 15', ja: 'macOS Sequoia 15' } },
+  { value: 'macos_sonoma_14', label: { de: 'macOS Sonoma 14', en: 'macOS Sonoma 14', pt: 'macOS Sonoma 14', es: 'macOS Sonoma 14', fr: 'macOS Sonoma 14', it: 'macOS Sonoma 14', nl: 'macOS Sonoma 14', ja: 'macOS Sonoma 14' } },
+  { value: 'macos_ventura_13', label: { de: 'macOS Ventura 13', en: 'macOS Ventura 13', pt: 'macOS Ventura 13', es: 'macOS Ventura 13', fr: 'macOS Ventura 13', it: 'macOS Ventura 13', nl: 'macOS Ventura 13', ja: 'macOS Ventura 13' } },
+  { value: 'macos_monterey_12', label: { de: 'macOS Monterey 12', en: 'macOS Monterey 12', pt: 'macOS Monterey 12', es: 'macOS Monterey 12', fr: 'macOS Monterey 12', it: 'macOS Monterey 12', nl: 'macOS Monterey 12', ja: 'macOS Monterey 12' } },
 ];
 
 const OTHER_OS_OPTIONS = [
-  { value: 'windows_arm_snapdragon', label: 'Windows on ARM / Snapdragon' },
-  { value: 'ios_ipados', label: 'iOS / iPadOS' },
-  { value: 'android', label: 'Android' },
-  { value: 'other_unsupported', label: 'Andere / nicht unterstützte Umgebung' },
-  { value: 'unknown', label: 'Unbekannt' },
+  { value: 'windows_arm_snapdragon', label: { de: 'Windows on ARM / Snapdragon', en: 'Windows on ARM / Snapdragon', pt: 'Windows on ARM / Snapdragon', es: 'Windows on ARM / Snapdragon', fr: 'Windows on ARM / Snapdragon', it: 'Windows on ARM / Snapdragon', nl: 'Windows on ARM / Snapdragon', ja: 'Windows on ARM / Snapdragon' } },
+  { value: 'ios_ipados', label: { de: 'iOS / iPadOS', en: 'iOS / iPadOS', pt: 'iOS / iPadOS', es: 'iOS / iPadOS', fr: 'iOS / iPadOS', it: 'iOS / iPadOS', nl: 'iOS / iPadOS', ja: 'iOS / iPadOS' } },
+  { value: 'android', label: { de: 'Android', en: 'Android', pt: 'Android', es: 'Android', fr: 'Android', it: 'Android', nl: 'Android', ja: 'Android' } },
+  { value: 'other_unsupported', label: { de: 'Andere / nicht unterstützte Umgebung', en: 'Other / unsupported environment', pt: 'Outro / ambiente não suportado', es: 'Otro / entorno no compatible', fr: 'Autre / environnement non pris en charge', it: 'Altro / ambiente non supportato', nl: 'Andere / niet-ondersteunde omgeving', ja: 'その他 / 非対応環境' } },
+  { value: 'unknown', label: { de: 'Unbekannt', en: 'Unknown', pt: 'Desconhecido', es: 'Desconocido', fr: 'Inconnu', it: 'Sconosciuto', nl: 'Onbekend', ja: '不明' } },
 ];
 
 const OS_OPTIONS = [...WINDOWS_OS_OPTIONS, ...MAC_OS_OPTIONS, ...OTHER_OS_OPTIONS];
 
 const SOURCE_OPTIONS = [
-  { value: 'phone', label: 'Telefon' },
-  { value: 'email', label: 'E-Mail' },
-  { value: 'live_chat', label: 'Live Chat' },
-  { value: 'webportal', label: 'Webportal' },
-  { value: 'self_registration_portal', label: 'Selbstregistrierungsportal' },
+  { value: 'phone', label: { de: 'Telefon', en: 'Phone', pt: 'Telefone', es: 'Teléfono', fr: 'Téléphone', it: 'Telefono', nl: 'Telefoon', ja: '電話' } },
+  { value: 'email', label: { de: 'E-Mail', en: 'Email', pt: 'E-mail', es: 'E-mail', fr: 'E-mail', it: 'E-mail', nl: 'E-mail', ja: 'メール' } },
+  { value: 'live_chat', label: { de: 'Live Chat', en: 'Live Chat', pt: 'Live Chat', es: 'Live Chat', fr: 'Live Chat', it: 'Live Chat', nl: 'Live Chat', ja: 'ライブチャット' } },
+  { value: 'webportal', label: { de: 'Webportal', en: 'Web portal', pt: 'Portal web', es: 'Portal web', fr: 'Portail web', it: 'Portale web', nl: 'Webportaal', ja: 'Webポータル' } },
+  { value: 'self_registration_portal', label: { de: 'Selbstregistrierungsportal', en: 'Self-registration portal', pt: 'Portal de autorregisto', es: 'Portal de autorregistro', fr: 'Portail d’auto-enregistrement', it: 'Portale di autoregistrazione', nl: 'Zelfregistratieportaal', ja: '自己登録ポータル' } },
 ];
 
-function osLabel(value) {
-  return OS_OPTIONS.find(o => o.value === value)?.label || value || 'Unbekannt';
+function optionText(option, lang = 'de') {
+  if (!option) return '';
+  if (typeof option.label === 'string') return option.label;
+  const key = String(lang || 'de').toLowerCase();
+  if (key.startsWith('pt')) return option.label.pt || option.label.en || option.label.de || '';
+  if (key.startsWith('es')) return option.label.es || option.label.en || option.label.de || '';
+  if (key.startsWith('fr')) return option.label.fr || option.label.en || option.label.de || '';
+  if (key.startsWith('it')) return option.label.it || option.label.en || option.label.de || '';
+  if (key.startsWith('nl')) return option.label.nl || option.label.en || option.label.de || '';
+  if (key.startsWith('ja')) return option.label.ja || option.label.en || option.label.de || '';
+  if (key.startsWith('en')) return option.label.en || option.label.de || '';
+  return option.label.de || option.label.en || '';
+}
+
+function osLabel(value, lang = 'de') {
+  const option = OS_OPTIONS.find(o => o.value === value);
+  return optionText(option, lang) || value || (lang === 'en' ? 'Unknown' : 'Unbekannt');
 }
 
 function groupValue(value, options) {
   return options.some(o => o.value === value) ? value : '';
 }
 
-function sourceLabel(value) {
-  return SOURCE_OPTIONS.find(o => o.value === value)?.label || value || 'Nicht angegeben';
+function sourceLabel(value, lang = 'de') {
+  const option = SOURCE_OPTIONS.find(o => o.value === value);
+  return optionText(option, lang) || value || (lang === 'en' ? 'Not provided' : 'Nicht angegeben');
+}
+
+
+
+function staticLabel(keyName, lang = 'de') {
+  const key = String(lang || 'de').toLowerCase();
+  const labels = {
+    choose: { de: 'Bitte auswählen', en: 'Please select', pt: 'Selecionar', es: 'Seleccionar', fr: 'Veuillez sélectionner', it: 'Selezionare', nl: 'Selecteren', ja: '選択してください' },
+    windows: { de: 'Windows', en: 'Windows', pt: 'Windows', es: 'Windows', fr: 'Windows', it: 'Windows', nl: 'Windows', ja: 'Windows' },
+    macos: { de: 'macOS', en: 'macOS', pt: 'macOS', es: 'macOS', fr: 'macOS', it: 'macOS', nl: 'macOS', ja: 'macOS' },
+    rare: { de: 'Selten / speziell', en: 'Rare / special', pt: 'Raro / especial', es: 'Raro / especial', fr: 'Rare / spécial', it: 'Raro / speciale', nl: 'Zeldzaam / speciaal', ja: 'まれ / 特殊' },
+  };
+  const group = labels[keyName] || {};
+  if (key.startsWith('pt')) return group.pt || group.en || group.de || '';
+  if (key.startsWith('es')) return group.es || group.en || group.de || '';
+  if (key.startsWith('fr')) return group.fr || group.en || group.de || '';
+  if (key.startsWith('it')) return group.it || group.en || group.de || '';
+  if (key.startsWith('nl')) return group.nl || group.en || group.de || '';
+  if (key.startsWith('ja')) return group.ja || group.en || group.de || '';
+  if (key.startsWith('en')) return group.en || group.de || '';
+  return group.de || group.en || '';
 }
 
 
@@ -199,11 +236,11 @@ function detectSupportPath({ connectionType, problem, model }) {
   const text = `${problem || ''} ${model || ''}`.toLowerCase();
   const connection = String(connectionType || '').toLowerCase();
 
-  const isError5 = /(?:fehler(?:code)?|error(?: code)?|code)?\s*-5\b|\b-5\b/.test(text);
-  const hasFirmwareWords = /firmware|recovery|fw|firmwareupdate|firmware-update|update fehlgeschlagen|update failed|firmware.*failed|firmware.*abgebrochen|firmware.*hängt|standalone/.test(text);
-  const hasUsbProblem = /usb|verbindung|connect|not detected|nicht erkannt|erkannt|disconnect|kommunikation|0x80211001/.test(text);
-  const hasWifi = /wlan|wi-fi|wifi|router|cloud|netzwerk|network|ip|dhcp|wireless/.test(text);
-  const hasOcr = /ocr|texterkennung|recognition|image processing|-6|erkennung/.test(text);
+  const isError5 = /(?:fehler(?:code)?|error(?: code)?|erro|erreur|errore|fout|fallo|code)?\s*-5\b|\b-5\b/.test(text);
+  const hasFirmwareWords = /firmware|recovery|fw|firmwareupdate|firmware-update|update fehlgeschlagen|update failed|firmware.*failed|firmware.*abgebrochen|firmware.*hängt|standalone|atualiza|actualiza|mise à jour|mise a jour|aggiornamento/.test(text);
+  const hasUsbProblem = /usb|verbindung|connect|connection|ligação|ligacao|conexão|conexion|connexion|connessione|verbinding|not detected|nicht erkannt|erkannt|reconhecido|detetado|detectado|reconocido|reconnu|riconosciuto|herkend|disconnect|desliga|scollega|kommunikation|comunic|0x80211001/.test(text);
+  const hasWifi = /wlan|wi-fi|wifi|router|netzwerk|network|rede|red|réseau|rete|netwerk|ip|dhcp|wireless/.test(text);
+  const hasOcr = /ocr|texterkennung|recognition|reconhecimento|reconocimiento|reconnaissance|riconoscimento|herkenning|image processing|-6|erkennung/.test(text);
 
   if (hasOcr) return 'OCR_ERROR';
   if (isError5) {
@@ -224,8 +261,8 @@ function detectSupportPath({ connectionType, problem, model }) {
 
 function isPlainError5Case(problem) {
   const text = String(problem || '').toLowerCase();
-  const isError5 = /(?:fehler(?:code)?|error(?: code)?|code)?\s*-5\b|\b-5\b/.test(text);
-  const hasFirmwareContext = /firmware|recovery|fw|firmwareupdate|firmware-update|update fehlgeschlagen|update failed|firmware.*failed|firmware.*abgebrochen|firmware.*hängt|standalone/.test(text);
+  const isError5 = /(?:fehler(?:code)?|error(?: code)?|erro|erreur|errore|fout|fallo|code)?\s*-5\b|\b-5\b/.test(text);
+  const hasFirmwareContext = /firmware|recovery|fw|firmwareupdate|firmware-update|update fehlgeschlagen|update failed|firmware.*failed|firmware.*abgebrochen|firmware.*hängt|standalone|atualiza|actualiza|mise à jour|mise a jour|aggiornamento/.test(text);
   return isError5 && !hasFirmwareContext;
 }
 
@@ -236,7 +273,7 @@ function forcePathBeforeKnowledgeBase({ connectionType, problem }) {
   if (isPlainError5Case(text)) {
     if (connection === 'usb') return 'USB_CONNECTION';
     if (connection === 'wi-fi' || connection === 'wifi' || connection === 'wlan') return 'WIFI_CONNECTION';
-    if (/wlan|wi-fi|wifi|router|netzwerk|network|ip|dhcp|cloud/.test(text)) return 'WIFI_CONNECTION';
+    if (/wlan|wi-fi|wifi|router|netzwerk|network|rede|red|réseau|rete|netwerk|ip|dhcp/.test(text)) return 'WIFI_CONNECTION';
     return 'SMART_ERROR5_CONTEXT';
   }
 
@@ -317,10 +354,50 @@ const VALID_MODEL_PATTERNS = [
 ];
 
 const PROBLEM_KEYWORDS = [
-  'fehler','error','nicht','not','erkannt','detected','verbindung','connection','usb','wlan','wifi','wi-fi',
-  'scan','scannen','scanner','papier','paper','stau','jam','streifen','line','ocr','installation','install',
-  'firmware','update','cloud','profil','profile','startet','crash','öffnet','open','meldung','message',
-  'code','-6','0x','gerät','device','manager','home','scanbutton','taste','led','orange','rot','red'
+  // DE / EN
+  'fehler','error','err','code','meldung','message','nicht','not','kein','keine','no',
+  'erkannt','detected','recognised','recognized','verbindung','connection','connect',
+  'disconnect','kommunikation','communication','usb','wlan','wifi','wi-fi','lan',
+  'scan','scannen','scanner','papier','paper','stau','jam','streifen','line','linien',
+  'ocr','texterkennung','recognition','installation','install','firmware','update',
+  'cloud','profil','profile','startet','start','crash','öffnet','open','gerät','device',
+  'manager','home','scanbutton','taste','button','led','orange','rot','red','0x','-5','-6',
+
+  // PT
+  'erro','falha','problema','mensagem','não','nao','reconhecido','detetado','detectado',
+  'ligação','ligacao','conexão','conexao','desliga','comunicação','comunicacao',
+  'digitalizar','digitalização','digitalizacao','papel','encravamento','atolamento',
+  'linhas','risca','riscas','instalação','instalacao','atualização','atualizacao',
+  'arranca','abre','dispositivo','gestor','botão','botao','luz','vermelho',
+
+  // ES
+  'fallo','mensaje','no','reconocido','detectado','conexión','conexion','desconecta',
+  'comunicación','comunicacion','escanear','escaneo','atasco','papel','línea','linea',
+  'rayas','instalación','instalacion','actualización','actualizacion','inicia','abre',
+  'dispositivo','administrador','botón','boton','luz','rojo',
+
+  // FR
+  'erreur','échec','echec','problème','probleme','message','pas','reconnu','détecté',
+  'detecte','connexion','déconnecte','deconnecte','communication','numériser','numeriser',
+  'numérisation','numerisation','bourrage','papier','ligne','lignes','installation',
+  'mise à jour','mise a jour','démarre','demarre','ouvre','périphérique','peripherique',
+  'gestionnaire','bouton','voyant','rouge',
+
+  // IT
+  'errore','guasto','problema','messaggio','non','riconosciuto','rilevato','connessione',
+  'scollega','comunicazione','scansione','scanner','carta','inceppamento','linea','righe',
+  'installazione','aggiornamento','avvia','apre','dispositivo','gestione','pulsante',
+  'spia','rosso',
+
+  // NL
+  'fout','storing','probleem','melding','niet','geen','herkend','gedetecteerd','verbinding',
+  'losgekoppeld','communicatie','scannen','scan','papier','papierstoring','lijn','lijnen',
+  'strepen','installatie','update','start','opent','apparaat','apparaatbeheer','knop',
+  'lampje','rood',
+
+  // JA
+  'エラー','問題','認識','検出','接続','切断','通信','スキャン','紙詰まり','線','筋',
+  'インストール','更新','ファームウェア','起動','開かない','デバイス','ボタン','ランプ','赤'
 ];
 
 function looksLikeScannerModel(value) {
@@ -337,24 +414,28 @@ function looksLikeProblemText(value) {
   const lower = raw.toLowerCase();
 
   // Empty / too short / repeated characters
-  if (raw.length < 8) return false;
+  if (raw.length < 5) return false;
   if (/^(.)\1{4,}$/i.test(compact)) return false;
 
-  // Known valid error formats may be short, but must look like a real error.
-  if (/(fehler|error|code|err|0x|-\d{1,4})/i.test(raw) && raw.length >= 5) return true;
+  // Known real error formats may be short, across support languages.
+  if (/(fehler|error|erro|erreur|errore|fout|fallo|échec|echec|code|err|0x|-\d{1,4}|エラー)/i.test(raw) && raw.length >= 5) return true;
 
-  // Random letters or random alphanumeric strings without words are not a problem description.
-  if (/^[a-z0-9]{4,30}$/i.test(compact)) return false;
-
-  // Require either a known support keyword or a natural sentence with at least 3 words.
-  const hasKeyword = PROBLEM_KEYWORDS.some(k => lower.includes(k));
+  const hasKeyword = PROBLEM_KEYWORDS.some(k => lower.includes(String(k).toLowerCase()));
   const wordCount = raw.split(/\s+/).filter(Boolean).length;
-  const hasVowels = /[aeiouäöü]/i.test(raw);
 
+  // Random letters / alphanumeric strings without known support meaning.
+  if (/^[a-z0-9]{4,30}$/i.test(compact) && !hasKeyword) return false;
+
+  // Accept short but meaningful issue patterns in all support languages:
+  // e.g. "erro -5", "error -6", "erreur firmware", "fout scanner"
+  if (hasKeyword && (wordCount >= 2 || /\d|0x|-\d/.test(raw))) return true;
+
+  // Natural sentence in Latin-script languages.
+  const hasLatinVowels = /[aeiouáàâãéèêíìîóòôõúùûäöü]/i.test(raw);
   if (!hasKeyword && wordCount < 3) return false;
-  if (!hasVowels && !/\d|0x|-/i.test(raw)) return false;
+  if (!hasLatinVowels && !/\d|0x|-|[\u3040-\u30ff\u3400-\u9fff]/.test(raw)) return false;
 
-  // Extra block for keyboard-smash-like strings.
+  // Keyboard-smash-like strings should still be blocked.
   const lettersOnly = compact.replace(/[^a-z]/gi, '');
   if (lettersOnly.length >= 6 && !hasKeyword && wordCount < 4) return false;
 
@@ -362,15 +443,55 @@ function looksLikeProblemText(value) {
 }
 
 function validationMessage(step, language) {
-  if (language === 'de') {
-    if (step === 2) return 'Bitte geben Sie eine echte ScanSnap-Modellbezeichnung ein, z. B. iX1600, iX1400, iX2500, iX500, S1300i oder SV600.';
-    if (step === 5) return 'Bitte geben Sie eine echte Fehlerbeschreibung ein, z. B. Fehlermeldung, Verhalten, Verbindung oder was genau nicht funktioniert. Zufällige Buchstaben wie csdfrx werden nicht akzeptiert.';
-  }
-  if (step === 2) return 'Please enter a real ScanSnap model, e.g. iX1600, iX1400, iX2500, iX500, S1300i or SV600.';
-  if (step === 5) return 'Please enter a real issue description, e.g. error message, behaviour, connection or what exactly is not working. Random letters like csdfrx are not accepted.';
+  const key = String(language || 'de').toLowerCase();
+  const lang =
+    key.startsWith('pt') ? 'pt' :
+    key.startsWith('es') ? 'es' :
+    key.startsWith('fr') ? 'fr' :
+    key.startsWith('it') ? 'it' :
+    key.startsWith('nl') ? 'nl' :
+    key.startsWith('ja') ? 'ja' :
+    key.startsWith('en') ? 'en' : 'de';
+
+  const messages = {
+    de: {
+      model: 'Bitte geben Sie eine echte ScanSnap-Modellbezeichnung ein, z. B. iX1600, iX1400, iX2500, iX500, S1300i oder SV600.',
+      problem: 'Bitte geben Sie eine echte Fehlerbeschreibung ein, z. B. Fehlermeldung, Verhalten, Verbindung oder was genau nicht funktioniert. Zufällige Buchstaben wie csdfrx werden nicht akzeptiert.',
+    },
+    en: {
+      model: 'Please enter a real ScanSnap model, e.g. iX1600, iX1400, iX2500, iX500, S1300i or SV600.',
+      problem: 'Please enter a real issue description, e.g. error message, behaviour, connection or what exactly is not working. Random letters like csdfrx are not accepted.',
+    },
+    pt: {
+      model: 'Por favor, introduz um modelo ScanSnap real, por exemplo iX1600, iX1400, iX2500, iX500, S1300i ou SV600.',
+      problem: 'Por favor, introduz uma descrição real do erro, por exemplo mensagem de erro, comportamento, ligação ou o que exatamente não funciona. Letras aleatórias como csdfrx não são aceites.',
+    },
+    es: {
+      model: 'Por favor, introduce un modelo ScanSnap real, por ejemplo iX1600, iX1400, iX2500, iX500, S1300i o SV600.',
+      problem: 'Por favor, introduce una descripción real del problema, por ejemplo mensaje de error, comportamiento, conexión o qué exactamente no funciona. Letras aleatorias como csdfrx no se aceptan.',
+    },
+    fr: {
+      model: 'Veuillez saisir un modèle ScanSnap réel, par exemple iX1600, iX1400, iX2500, iX500, S1300i ou SV600.',
+      problem: 'Veuillez saisir une vraie description du problème, par exemple message d’erreur, comportement, connexion ou ce qui ne fonctionne pas exactement. Les lettres aléatoires comme csdfrx ne sont pas acceptées.',
+    },
+    it: {
+      model: 'Inserisci un modello ScanSnap reale, ad esempio iX1600, iX1400, iX2500, iX500, S1300i o SV600.',
+      problem: 'Inserisci una descrizione reale del problema, ad esempio messaggio di errore, comportamento, connessione o cosa non funziona esattamente. Lettere casuali come csdfrx non sono accettate.',
+    },
+    nl: {
+      model: 'Voer een echt ScanSnap-model in, bijvoorbeeld iX1600, iX1400, iX2500, iX500, S1300i of SV600.',
+      problem: 'Voer een echte probleemomschrijving in, bijvoorbeeld foutmelding, gedrag, verbinding of wat precies niet werkt. Willekeurige letters zoals csdfrx worden niet geaccepteerd.',
+    },
+    ja: {
+      model: '実際のScanSnapモデル名を入力してください。例：iX1600、iX1400、iX2500、iX500、S1300i、SV600。',
+      problem: '実際の問題内容を入力してください。例：エラーメッセージ、動作、接続、何が動作しないか。csdfrx のようなランダムな文字列は受け付けません。',
+    },
+  };
+
+  if (step === 2) return messages[lang].model;
+  if (step === 5) return messages[lang].problem;
   return '';
 }
-
 
 export default function Home() {
   const navigate = useNavigate();
@@ -473,7 +594,7 @@ export default function Home() {
         model: detectedModel,
         device: detectedModel,
         connectionType: connectionType || 'unknown',
-        os: osLabel(osType),
+        os: osLabel(osType, language),
         osType,
         contactSource,
         source: contactSource,
@@ -491,7 +612,7 @@ export default function Home() {
       model: detectedModel,
       device: detectedModel,
       connectionType,
-      os: osLabel(osType),
+      os: osLabel(osType, language),
       osType,
       contactSource,
       source: contactSource,
@@ -527,7 +648,7 @@ export default function Home() {
     updateSettings({ emailLanguage: language });
 
     const detectedModel = modelValue;
-    const enrichedProblem = [detectedModel, connectionType, osLabel(osType), problem.trim()].filter(Boolean).join(' ');
+    const enrichedProblem = [detectedModel, connectionType, osLabel(osType, language), problem.trim()].filter(Boolean).join(' ');
     const plainError5 = isPlainError5Case(problem.trim());
     const kbResults = plainError5 ? [] : searchKnowledgeBase(enrichedProblem, detectedModel, '');
     const topEntry = kbResults[0] || null;
@@ -544,7 +665,7 @@ export default function Home() {
         supporterName: supporterName.trim(),
         model: detectedModel,
         connectionType,
-        os: osLabel(osType),
+        os: osLabel(osType, language),
         osType,
         contactSource,
         source: contactSource,
@@ -552,7 +673,7 @@ export default function Home() {
       model: detectedModel,
       device: detectedModel,
       connectionType: connectionType || 'unknown',
-      os: osLabel(osType),
+      os: osLabel(osType, language),
       osType,
       contactSource,
       source: contactSource,
@@ -682,7 +803,7 @@ export default function Home() {
                         className={`rounded-2xl px-4 py-4 text-sm text-center transition-all ${contactSource === s.value ? 'bg-fuchsia-500/18 border-fuchsia-400/70 text-white shadow-[0_0_28px_rgba(255,45,170,0.22)]' : 'bg-black/20 border-cyan-300/18 text-white/76 hover:bg-cyan-400/8 hover:border-cyan-300/45'}`}
                         style={{ borderWidth: 1 }}
                       >
-                        {s.label}
+                        {optionText(s, language)}
                       </button>
                     ))}
                   </div>
@@ -708,7 +829,7 @@ export default function Home() {
                         className={`rounded-2xl px-4 py-4 text-sm text-center transition-all ${connectionType === c.value ? 'bg-fuchsia-500/18 border-fuchsia-400/70 text-white shadow-[0_0_28px_rgba(255,45,170,0.22)]' : 'bg-black/20 border-cyan-300/18 text-white/76 hover:bg-cyan-400/8 hover:border-cyan-300/45'}`}
                         style={{ borderWidth: 1 }}
                       >
-                        {connectionLabel(c.value, language)}
+                        {optionText(c, language)}
                       </button>
                     ))}
                   </div>
@@ -728,9 +849,9 @@ export default function Home() {
                         onChange={(e) => setOsType(e.target.value)}
                         style={{ ...inputStyle, width: '100%', padding: '12px 14px', height: 48 }}
                       >
-                        <option value="">Bitte auswählen</option>
+                        <option value="">{staticLabel('choose', language)}</option>
                         {WINDOWS_OS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
+                          <option key={o.value} value={o.value}>{optionText(o, language)}</option>
                         ))}
                       </select>
                     </div>
@@ -747,9 +868,9 @@ export default function Home() {
                         onChange={(e) => setOsType(e.target.value)}
                         style={{ ...inputStyle, width: '100%', padding: '12px 14px', height: 48 }}
                       >
-                        <option value="">Bitte auswählen</option>
+                        <option value="">{staticLabel('choose', language)}</option>
                         {MAC_OS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
+                          <option key={o.value} value={o.value}>{optionText(o, language)}</option>
                         ))}
                       </select>
                     </div>
@@ -766,9 +887,9 @@ export default function Home() {
                         onChange={(e) => setOsType(e.target.value)}
                         style={{ ...inputStyle, width: '100%', padding: '12px 14px', height: 48 }}
                       >
-                        <option value="">Bitte auswählen</option>
+                        <option value="">{staticLabel('choose', language)}</option>
                         {OTHER_OS_OPTIONS.map((o) => (
-                          <option key={o.value} value={o.value}>{o.label}</option>
+                          <option key={o.value} value={o.value}>{optionText(o, language)}</option>
                         ))}
                       </select>
                     </div>

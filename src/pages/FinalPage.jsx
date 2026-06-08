@@ -37,7 +37,7 @@ const MISSING_INFO_LABELS = {
   },
   en: {
     title: 'MISSING INFORMATION BEFORE ESCALATION',
-    connectivity: 'Connectivity type (USB / Wi-Fi / LAN)',
+    connectivity: 'Connectivity type (USB / Wi‑Fi / LAN)',
     os: 'Operating system',
     serial: 'Scanner serial number',
     address: 'Customer address',
@@ -46,47 +46,233 @@ const MISSING_INFO_LABELS = {
     button: 'Generate customer email to request missing information',
     customerEmailTitle: 'CUSTOMER EMAIL — MISSING INFORMATION REQUEST',
     copyEmail: 'Copy Email',
-  }
+  },
+  pt: {
+    title: 'INFORMAÇÕES EM FALTA ANTES DO ESCALAMENTO',
+    connectivity: 'Tipo de ligação (USB / Wi‑Fi / LAN)',
+    os: 'Sistema operativo',
+    serial: 'Número de série do scanner',
+    address: 'Morada do cliente',
+    scan_count: 'Contador de digitalizações / Lifetime Counter',
+    country: 'País do cliente',
+    button: 'Criar e-mail ao cliente para pedir informações em falta',
+    customerEmailTitle: 'E-MAIL AO CLIENTE — PEDIDO DE INFORMAÇÕES EM FALTA',
+    copyEmail: 'Copiar e-mail',
+  },
+  es: {
+    title: 'INFORMACIÓN FALTANTE ANTES DE LA ESCALACIÓN',
+    connectivity: 'Tipo de conexión (USB / Wi‑Fi / LAN)',
+    os: 'Sistema operativo',
+    serial: 'Número de serie del escáner',
+    address: 'Dirección del cliente',
+    scan_count: 'Contador de escaneos / Lifetime Counter',
+    country: 'País del cliente',
+    button: 'Crear e-mail al cliente para solicitar información faltante',
+    customerEmailTitle: 'E-MAIL AL CLIENTE — SOLICITUD DE INFORMACIÓN FALTANTE',
+    copyEmail: 'Copiar e-mail',
+  },
+  fr: {
+    title: 'INFORMATIONS MANQUANTES AVANT ESCALADE',
+    connectivity: 'Type de connexion (USB / Wi‑Fi / LAN)',
+    os: 'Système d’exploitation',
+    serial: 'Numéro de série du scanner',
+    address: 'Adresse du client',
+    scan_count: 'Compteur de scans / Lifetime Counter',
+    country: 'Pays du client',
+    button: 'Créer l’e-mail client pour demander les informations manquantes',
+    customerEmailTitle: 'E-MAIL CLIENT — DEMANDE D’INFORMATIONS MANQUANTES',
+    copyEmail: 'Copier l’e-mail',
+  },
+  it: {
+    title: 'INFORMAZIONI MANCANTI PRIMA DELL’ESCALATION',
+    connectivity: 'Tipo di connessione (USB / Wi‑Fi / LAN)',
+    os: 'Sistema operativo',
+    serial: 'Numero di serie dello scanner',
+    address: 'Indirizzo del cliente',
+    scan_count: 'Conteggio scansioni / Lifetime Counter',
+    country: 'Paese del cliente',
+    button: 'Creare e-mail al cliente per richiedere informazioni mancanti',
+    customerEmailTitle: 'E-MAIL AL CLIENTE — RICHIESTA INFORMAZIONI MANCANTI',
+    copyEmail: 'Copia e-mail',
+  },
+  nl: {
+    title: 'ONTBREKENDE INFORMATIE VÓÓR ESCALATIE',
+    connectivity: 'Verbindingstype (USB / Wi‑Fi / LAN)',
+    os: 'Besturingssysteem',
+    serial: 'Serienummer van de scanner',
+    address: 'Adres van de klant',
+    scan_count: 'Scanteller / Lifetime Counter',
+    country: 'Land van de klant',
+    button: 'Klantmail maken om ontbrekende informatie op te vragen',
+    customerEmailTitle: 'KLANTMAIL — VERZOEK OM ONTBREKENDE INFORMATIE',
+    copyEmail: 'E-mail kopiëren',
+  },
+  ja: {
+    title: 'エスカレーション前の不足情報',
+    connectivity: '接続タイプ（USB / Wi‑Fi / LAN）',
+    os: 'オペレーティングシステム',
+    serial: 'スキャナーのシリアル番号',
+    address: 'お客様の住所',
+    scan_count: 'スキャン枚数 / Lifetime Counter',
+    country: 'お客様の国',
+    button: '不足情報を依頼するお客様向けメールを作成',
+    customerEmailTitle: 'お客様向けメール — 不足情報の依頼',
+    copyEmail: 'メールをコピー',
+  },
 };
 
 function buildMissingInfoEmail(lang, model) {
-  const l = (lang || 'de').toLowerCase();
-  if (l === 'de') {
-    return `Guten Tag,
+  const key = emailLangKey(lang);
+  const labels = MISSING_INFO_LABELS[key] || MISSING_INFO_LABELS.en;
+  const modelName = model || (key === 'en' ? 'scanner' : 'Scanner');
 
-vielen Dank für Ihre Geduld, während wir den gemeldeten Fall zu Ihrem ${model || 'Scanner'} weiter prüfen.
+  const templates = {
+    de: `Guten Tag,
+
+vielen Dank für Ihre Geduld, während wir den gemeldeten Fall zu Ihrem ${modelName} weiter prüfen.
 
 Damit wir die nächsten Schritte korrekt einleiten können, benötigen wir bitte noch folgende Informationen:
 
-- Verbindungstyp (USB / WLAN / LAN)
-- Betriebssystem
-- Scanner-Seriennummer
-- Kundenadresse
-- Scananzahl / Lifetime Counter
-- Land des Kunden
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
 
 Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im bestehenden Vorgang dokumentiert bleiben.
 
 Mit freundlichen Grüßen
-PFU Support Team`;
-  }
-  return `Dear Customer,
+PFU Support Team`,
 
-Thank you for your continued patience while we work to resolve the issue with your ${model || 'scanner'}.
+    en: `Dear Customer,
+
+Thank you for your continued patience while we work to resolve the issue with your ${modelName}.
 
 To proceed with the next steps, we require the following additional information:
 
-- Connectivity type (USB / Wi-Fi / LAN)
-- Operating system
-- Scanner serial number
-- Customer address
-- Scan count / Lifetime counter
-- Customer country
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
 
 Please reply directly to this email so all information remains documented in the existing case.
 
 Kind regards
-PFU Support Team`;
+PFU Support Team`,
+
+    pt: `Bom dia,
+
+Obrigado pela sua paciência enquanto continuamos a analisar o caso reportado com o seu ${modelName}.
+
+Para podermos iniciar os próximos passos corretamente, precisamos ainda das seguintes informações:
+
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
+
+Por favor, responda diretamente a este e-mail para que todas as informações permaneçam documentadas no caso existente.
+
+Atenciosamente
+PFU Support Team`,
+
+    es: `Buenos días,
+
+Gracias por su paciencia mientras seguimos revisando el caso reportado con su ${modelName}.
+
+Para poder iniciar los siguientes pasos correctamente, necesitamos todavía la siguiente información:
+
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
+
+Por favor, responda directamente a este e-mail para que toda la información quede documentada en el caso existente.
+
+Atentamente
+PFU Support Team`,
+
+    fr: `Bonjour,
+
+Merci pour votre patience pendant que nous poursuivons l’analyse du cas signalé avec votre ${modelName}.
+
+Afin de pouvoir lancer correctement les prochaines étapes, nous avons encore besoin des informations suivantes :
+
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
+
+Veuillez répondre directement à cet e-mail afin que toutes les informations restent documentées dans le dossier existant.
+
+Cordialement
+PFU Support Team`,
+
+    it: `Buongiorno,
+
+La ringraziamo per la pazienza mentre continuiamo ad analizzare il caso segnalato con il suo ${modelName}.
+
+Per procedere correttamente con i prossimi passaggi, abbiamo ancora bisogno delle seguenti informazioni:
+
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
+
+La preghiamo di rispondere direttamente a questa e-mail, in modo che tutte le informazioni restino documentate nel caso esistente.
+
+Cordiali saluti
+PFU Support Team`,
+
+    nl: `Goedendag,
+
+Bedankt voor uw geduld terwijl wij de gemelde situatie met uw ${modelName} verder onderzoeken.
+
+Om de volgende stappen correct te kunnen starten, hebben wij nog de volgende informatie nodig:
+
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
+
+Reageer alstublieft rechtstreeks op deze e-mail, zodat alle informatie in de bestaande case gedocumenteerd blijft.
+
+Met vriendelijke groet
+PFU Support Team`,
+
+    ja: `お世話になっております。
+
+お客様の${modelName}に関するケースについて、引き続き確認しております。お待ちいただきありがとうございます。
+
+次の手順を正しく進めるため、以下の情報をお知らせください：
+
+- ${labels.connectivity}
+- ${labels.os}
+- ${labels.serial}
+- ${labels.address}
+- ${labels.scan_count}
+- ${labels.country}
+
+情報が既存のケースに記録されるよう、このメールに直接ご返信ください。
+
+よろしくお願いいたします。
+PFU Support Team`,
+  };
+
+  return templates[key] || templates.en;
 }
 
 const pageStyle = {
@@ -159,6 +345,118 @@ function sourceOpening(session, lang = 'de') {
 }
 
 
+
+function emailLangKey(lang = 'de') {
+  const key = String(lang || 'de').toLowerCase();
+  if (key.startsWith('pt')) return 'pt';
+  if (key.startsWith('es')) return 'es';
+  if (key.startsWith('fr')) return 'fr';
+  if (key.startsWith('it')) return 'it';
+  if (key.startsWith('nl')) return 'nl';
+  if (key.startsWith('ja')) return 'ja';
+  if (key.startsWith('en')) return 'en';
+  return 'de';
+}
+
+function translateEmailText(map, lang = 'de') {
+  const key = emailLangKey(lang);
+  return map[key] || map.en || map.de || '';
+}
+
+const EMAIL_PHRASES = {
+  requestHeader: {
+    de: 'Für die nächste Prüfung benötigen wir bitte noch folgende Informationen:',
+    en: 'For the next review, we still need the following information:',
+    pt: 'Para a próxima análise, precisamos ainda das seguintes informações:',
+    es: 'Para la siguiente revisión, necesitamos todavía la siguiente información:',
+    fr: 'Pour la prochaine vérification, nous avons encore besoin des informations suivantes :',
+    it: 'Per la prossima verifica abbiamo ancora bisogno delle seguenti informazioni:',
+    nl: 'Voor de volgende controle hebben wij nog de volgende informatie nodig:',
+    ja: '次の確認のため、以下の情報をお知らせください：',
+  },
+  missingOs: {
+    de: 'Betriebssystem inklusive Versionsstand',
+    en: 'Operating system including version',
+    pt: 'Sistema operativo incluindo versão',
+    es: 'Sistema operativo incluida la versión',
+    fr: 'Système d’exploitation avec version',
+    it: 'Sistema operativo inclusa la versione',
+    nl: 'Besturingssysteem inclusief versie',
+    ja: 'オペレーティングシステムとバージョン',
+  },
+  missingConnection: {
+    de: 'Verbindungstyp (USB / WLAN / LAN)',
+    en: 'Connectivity type (USB / Wi‑Fi / LAN)',
+    pt: 'Tipo de ligação (USB / Wi‑Fi / LAN)',
+    es: 'Tipo de conexión (USB / Wi‑Fi / LAN)',
+    fr: 'Type de connexion (USB / Wi‑Fi / LAN)',
+    it: 'Tipo di connessione (USB / Wi‑Fi / LAN)',
+    nl: 'Verbindingstype (USB / Wi‑Fi / LAN)',
+    ja: '接続タイプ（USB / Wi‑Fi / LAN）',
+  },
+  errorScreenshot: {
+    de: 'Screenshot der vollständigen Fehlermeldung',
+    en: 'Screenshot of the full error message',
+    pt: 'Screenshot da mensagem de erro completa',
+    es: 'Captura completa del mensaje de error',
+    fr: 'Capture complète du message d’erreur',
+    it: 'Screenshot completo del messaggio di errore',
+    nl: 'Screenshot van de volledige foutmelding',
+    ja: '完全なエラーメッセージのスクリーンショット',
+  },
+  deviceManager: {
+    de: 'Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist',
+    en: 'Screenshot or photo from Windows Device Manager showing the scanner or unknown device',
+    pt: 'Screenshot ou foto do Gestor de Dispositivos do Windows onde o scanner ou o dispositivo desconhecido esteja visível',
+    es: 'Captura o foto del Administrador de dispositivos de Windows donde se vea el escáner o el dispositivo desconocido',
+    fr: 'Capture ou photo du Gestionnaire de périphériques Windows montrant le scanner ou le périphérique inconnu',
+    it: 'Screenshot o foto di Gestione dispositivi di Windows in cui sia visibile lo scanner o il dispositivo sconosciuto',
+    nl: 'Screenshot of foto van Windows Apparaatbeheer waarop de scanner of het onbekende apparaat zichtbaar is',
+    ja: 'スキャナーまたは不明なデバイスが表示されているWindowsデバイスマネージャーのスクリーンショットまたは写真',
+  },
+  sshomeVersion: {
+    de: 'Installierte ScanSnap Home Version',
+    en: 'Installed ScanSnap Home version',
+    pt: 'Versão instalada do ScanSnap Home',
+    es: 'Versión instalada de ScanSnap Home',
+    fr: 'Version installée de ScanSnap Home',
+    it: 'Versione installata di ScanSnap Home',
+    nl: 'Geïnstalleerde ScanSnap Home-versie',
+    ja: 'インストールされているScanSnap Homeバージョン',
+  },
+  firmwareVersion: {
+    de: 'Installierte Firmware-Version des Scanners',
+    en: 'Installed scanner firmware version',
+    pt: 'Versão de firmware instalada no scanner',
+    es: 'Versión de firmware instalada en el escáner',
+    fr: 'Version du firmware installée sur le scanner',
+    it: 'Versione firmware installata nello scanner',
+    nl: 'Geïnstalleerde firmwareversie van de scanner',
+    ja: 'スキャナーにインストールされているファームウェアバージョン',
+  },
+  waitingResponse: {
+    de: 'Bitte testen Sie die oben beschriebenen Schritte und teilen Sie uns das Ergebnis mit.',
+    en: 'Please test the steps described above and let us know the result.',
+    pt: 'Por favor, teste os passos descritos acima e informe-nos do resultado.',
+    es: 'Por favor, pruebe los pasos descritos anteriormente e indíquenos el resultado.',
+    fr: 'Veuillez tester les étapes décrites ci-dessus et nous communiquer le résultat.',
+    it: 'La preghiamo di provare i passaggi descritti sopra e comunicarci il risultato.',
+    nl: 'Test de hierboven beschreven stappen en laat ons het resultaat weten.',
+    ja: '上記の手順をお試しいただき、結果をお知らせください。',
+  },
+  analysisHeader: {
+    de: 'Gemäß der dokumentierten Analyse wurden die folgenden ausgewählten Schritte für Ihren {model} bereits durchgeführt:',
+    en: 'According to the documented analysis, the following selected steps have already been performed for your {model}:',
+    pt: 'De acordo com a análise documentada, os seguintes passos selecionados já foram realizados para o seu {model}:',
+    es: 'Según el análisis documentado, ya se realizaron los siguientes pasos seleccionados para su {model}:',
+    fr: 'Selon l’analyse documentée, les étapes sélectionnées suivantes ont déjà été effectuées pour votre {model} :',
+    it: 'Secondo l’analisi documentata, i seguenti passaggi selezionati sono già stati eseguiti per il suo {model}:',
+    nl: 'Volgens de gedocumenteerde analyse zijn de volgende geselecteerde stappen al uitgevoerd voor uw {model}:',
+    ja: '記録された分析によると、お客様の{model}について以下の選択された手順がすでに実施されています：',
+  },
+};
+
+
 // ── Email Module Builder ─────────────────────────────────────
 
 function EmailBuilder({ session, brain, lang }) {
@@ -185,40 +483,76 @@ function EmailBuilder({ session, brain, lang }) {
   const SCREENSHOT_DETAIL_OPTIONS = [
     {
       key: 'error_message',
-      label: { de: 'Fehlermeldung', en: 'Error message' },
-      text: { de: 'Screenshot der vollständigen Fehlermeldung', en: 'Screenshot of the full error message' },
+      label: { de: 'Fehlermeldung', en: 'Error message', pt: 'Mensagem de erro', es: 'Mensaje de error', fr: 'Message d’erreur', it: 'Messaggio di errore', nl: 'Foutmelding', ja: 'エラーメッセージ' },
+      text: EMAIL_PHRASES.errorScreenshot,
     },
     {
       key: 'device_manager',
-      label: { de: 'Geräte-Manager', en: 'Device Manager' },
-      text: { de: 'Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist', en: 'Screenshot or photo from Windows Device Manager showing the scanner or unknown device' },
+      label: { de: 'Geräte-Manager', en: 'Device Manager', pt: 'Gestor de Dispositivos', es: 'Administrador de dispositivos', fr: 'Gestionnaire de périphériques', it: 'Gestione dispositivi', nl: 'Apparaatbeheer', ja: 'デバイスマネージャー' },
+      text: EMAIL_PHRASES.deviceManager,
     },
     {
       key: 'scanner_display_led',
-      label: { de: 'Scanner-Display / LED', en: 'Scanner display / LED' },
-      text: { de: 'Foto des Scanner-Displays bzw. der aktuellen LED-Anzeige', en: 'Photo of the scanner display or current LED indicator' },
+      label: { de: 'Scanner-Display / LED', en: 'Scanner display / LED', pt: 'Display / LED do scanner', es: 'Pantalla / LED del escáner', fr: 'Écran / LED du scanner', it: 'Display / LED dello scanner', nl: 'Scannerdisplay / LED', ja: 'スキャナー画面 / LED' },
+      text: {
+        de: 'Foto des Scanner-Displays bzw. der aktuellen LED-Anzeige',
+        en: 'Photo of the scanner display or current LED indicator',
+        pt: 'Foto do display do scanner ou do estado atual do LED',
+        es: 'Foto de la pantalla del escáner o del estado actual del LED',
+        fr: 'Photo de l’écran du scanner ou de l’état actuel du voyant LED',
+        it: 'Foto del display dello scanner o dello stato attuale del LED',
+        nl: 'Foto van het scannerdisplay of de huidige LED-status',
+        ja: 'スキャナー画面または現在のLED表示の写真',
+      },
     },
     {
       key: 'scanner_behavior_video',
-      label: { de: 'Kurzes Video', en: 'Short video' },
-      text: { de: 'Falls möglich, ein kurzes Video des Scannerverhaltens (max. 30 Sekunden)', en: 'If possible, a short video of the scanner behaviour (max. 30 seconds)' },
+      label: { de: 'Kurzes Video', en: 'Short video', pt: 'Vídeo curto', es: 'Vídeo corto', fr: 'Courte vidéo', it: 'Breve video', nl: 'Korte video', ja: '短い動画' },
+      text: {
+        de: 'Falls möglich, ein kurzes Video des Scannerverhaltens (max. 30 Sekunden)',
+        en: 'If possible, a short video of the scanner behaviour (max. 30 seconds)',
+        pt: 'Se possível, um vídeo curto do comportamento do scanner (máx. 30 segundos)',
+        es: 'Si es posible, un vídeo corto del comportamiento del escáner (máx. 30 segundos)',
+        fr: 'Si possible, une courte vidéo du comportement du scanner (max. 30 secondes)',
+        it: 'Se possibile, un breve video del comportamento dello scanner (max. 30 secondi)',
+        nl: 'Indien mogelijk een korte video van het scannergedrag (max. 30 seconden)',
+        ja: '可能であれば、スキャナーの動作を示す短い動画（最大30秒）',
+      },
     },
     {
       key: 'scansnap_home_screen',
-      label: { de: 'ScanSnap Home Fenster', en: 'ScanSnap Home screen' },
-      text: { de: 'Screenshot des betroffenen ScanSnap Home Fensters bzw. der Scanner-Informationen', en: 'Screenshot of the affected ScanSnap Home window or scanner information' },
+      label: { de: 'ScanSnap Home Fenster', en: 'ScanSnap Home screen', pt: 'Janela do ScanSnap Home', es: 'Ventana de ScanSnap Home', fr: 'Fenêtre ScanSnap Home', it: 'Finestra ScanSnap Home', nl: 'ScanSnap Home-venster', ja: 'ScanSnap Home画面' },
+      text: {
+        de: 'Screenshot des betroffenen ScanSnap Home Fensters bzw. der Scanner-Informationen',
+        en: 'Screenshot of the affected ScanSnap Home window or scanner information',
+        pt: 'Screenshot da janela afetada do ScanSnap Home ou das informações do scanner',
+        es: 'Captura de la ventana afectada de ScanSnap Home o de la información del escáner',
+        fr: 'Capture de la fenêtre ScanSnap Home concernée ou des informations du scanner',
+        it: 'Screenshot della finestra ScanSnap Home interessata o delle informazioni scanner',
+        nl: 'Screenshot van het betreffende ScanSnap Home-venster of de scannerinformatie',
+        ja: '該当するScanSnap Home画面またはスキャナー情報のスクリーンショット',
+      },
     },
     {
       key: 'scan_result',
-      label: { de: 'Scan-Ergebnis', en: 'Scan result' },
-      text: { de: 'Beispielscan oder Screenshot des fehlerhaften Scan-Ergebnisses', en: 'Sample scan or screenshot of the incorrect scan result' },
+      label: { de: 'Scan-Ergebnis', en: 'Scan result', pt: 'Resultado da digitalização', es: 'Resultado del escaneo', fr: 'Résultat de numérisation', it: 'Risultato della scansione', nl: 'Scanresultaat', ja: 'スキャン結果' },
+      text: {
+        de: 'Beispielscan oder Screenshot des fehlerhaften Scan-Ergebnisses',
+        en: 'Sample scan or screenshot of the incorrect scan result',
+        pt: 'Digitalização de exemplo ou screenshot do resultado incorreto',
+        es: 'Escaneo de ejemplo o captura del resultado incorrecto',
+        fr: 'Exemple de scan ou capture du résultat incorrect',
+        it: 'Scansione di esempio o screenshot del risultato errato',
+        nl: 'Voorbeeldscan of screenshot van het onjuiste scanresultaat',
+        ja: '不正なスキャン結果のサンプルスキャンまたはスクリーンショット',
+      },
     },
   ];
 
   const screenshotDetailText = (key) => {
     const option = SCREENSHOT_DETAIL_OPTIONS.find(item => item.key === key);
     if (!option) return '';
-    return option.text[lang] || option.text.de || option.text.en || '';
+    return translateEmailText(option.text, lang);
   };
 
   const moduleStepPatterns = {
@@ -232,28 +566,21 @@ function EmailBuilder({ session, brain, lang }) {
 
   const normalize = (value) => String(value || '').toLowerCase();
   const getText = (key) => getModuleText(key, lang) || getModuleText(key, 'de') || getModuleText(key, 'en') || '';
-  const isDe = normalize(lang).startsWith('de');
+  const langCode = emailLangKey(lang);
+  const isDe = langCode === 'de';
 
   const resultLabel = (status) => {
-    const de = {
-      solved: 'Problem behoben',
-      done: 'durchgeführt',
-      not_solved: 'durchgeführt, Problem nicht behoben',
-      not_possible: 'nicht möglich',
-      skipped: 'übersprungen',
-      blocked: 'blockiert',
-      waiting_customer: 'wartet auf Rückmeldung',
+    const labels = {
+      de: { solved: 'Problem behoben', done: 'durchgeführt', not_solved: 'durchgeführt, Problem nicht behoben', not_possible: 'nicht möglich', skipped: 'übersprungen', blocked: 'blockiert', waiting_customer: 'wartet auf Rückmeldung' },
+      en: { solved: 'issue resolved', done: 'completed', not_solved: 'completed, issue not resolved', not_possible: 'not possible', skipped: 'skipped', blocked: 'blocked', waiting_customer: 'awaiting customer response' },
+      pt: { solved: 'problema resolvido', done: 'concluído', not_solved: 'concluído, problema não resolvido', not_possible: 'não foi possível', skipped: 'ignorado', blocked: 'bloqueado', waiting_customer: 'a aguardar resposta do cliente' },
+      es: { solved: 'problema resuelto', done: 'realizado', not_solved: 'realizado, problema no resuelto', not_possible: 'no posible', skipped: 'omitido', blocked: 'bloqueado', waiting_customer: 'esperando respuesta del cliente' },
+      fr: { solved: 'problème résolu', done: 'effectué', not_solved: 'effectué, problème non résolu', not_possible: 'pas possible', skipped: 'ignoré', blocked: 'bloqué', waiting_customer: 'en attente de réponse client' },
+      it: { solved: 'problema risolto', done: 'eseguito', not_solved: 'eseguito, problema non risolto', not_possible: 'non possibile', skipped: 'saltato', blocked: 'bloccato', waiting_customer: 'in attesa di risposta del cliente' },
+      nl: { solved: 'probleem opgelost', done: 'uitgevoerd', not_solved: 'uitgevoerd, probleem niet opgelost', not_possible: 'niet mogelijk', skipped: 'overgeslagen', blocked: 'geblokkeerd', waiting_customer: 'wachten op reactie klant' },
+      ja: { solved: '問題解決', done: '完了', not_solved: '実施済み、問題未解決', not_possible: '実施不可', skipped: 'スキップ', blocked: 'ブロック', waiting_customer: 'お客様の返信待ち' },
     };
-    const en = {
-      solved: 'issue resolved',
-      done: 'completed',
-      not_solved: 'completed, issue not resolved',
-      not_possible: 'not possible',
-      skipped: 'skipped',
-      blocked: 'blocked',
-      waiting_customer: 'awaiting customer response',
-    };
-    return (isDe ? de : en)[status] || status || '';
+    return (labels[langCode] || labels.en)[status] || status || '';
   };
 
   const stepTitle = (step) => {
@@ -275,6 +602,12 @@ function EmailBuilder({ session, brain, lang }) {
       .replace(/^[-•]\s*/, '')
       .replace(/^Bitte\s+/i, '')
       .replace(/^Please\s+/i, '')
+      .replace(/^Por favor,?\s+/i, '')
+      .replace(/^Veuillez\s+/i, '')
+      .replace(/^La preghiamo di\s+/i, '')
+      .replace(/^Ci comunichi\s+/i, '')
+      .replace(/^Stuur ons alstublieft\s+/i, '')
+      .replace(/^お手数ですが\s*/i, '')
       .replace(/[.。]\s*$/, '')
       .trim();
     if (!clean) return;
@@ -309,32 +642,29 @@ function EmailBuilder({ session, brain, lang }) {
     const has = (key) => requestKeys.includes(key);
 
     if (has('missing_info_request')) {
-      if (!session?.os && !session?.knownFacts?.os) addUniqueLine(lines, isDe ? 'Betriebssystem inklusive Version' : 'Operating system including version');
-      if (!session?.connectionType && !session?.knownFacts?.connectionType) addUniqueLine(lines, isDe ? 'Verbindungstyp (USB / WLAN / LAN)' : 'Connectivity type (USB / Wi-Fi / LAN)');
-      addUniqueLine(lines, isDe ? 'Screenshot der vollständigen Fehlermeldung' : 'Screenshot of the full error message');
+      if (!session?.os && !session?.knownFacts?.os) addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.missingOs, lang));
+      if (!session?.connectionType && !session?.knownFacts?.connectionType) addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.missingConnection, lang));
+      addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.errorScreenshot, lang));
     }
 
     if (has('request_device_manager_photo')) {
-      addUniqueLine(lines, isDe
-        ? 'Screenshot oder Foto aus dem Windows-Geräte-Manager, auf dem der Scanner bzw. das unbekannte Gerät sichtbar ist'
-        : 'Screenshot or photo from Windows Device Manager showing the scanner or unknown device'
-      );
+      addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.deviceManager, lang));
     }
 
-    if (has('request_error_screenshot')) {
-      addUniqueLine(lines, isDe ? 'Screenshot der vollständigen Fehlermeldung' : 'Screenshot of the full error message');
+    if (has('request_error_screenshot') && !has('screenshot_request')) {
+      addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.errorScreenshot, lang));
     }
 
-    if (has('request_os_version')) {
-      addUniqueLine(lines, isDe ? 'Betriebssystem inklusive Versionsstand' : 'Operating system including version');
+    if (has('request_os_version') && !session?.os && !session?.knownFacts?.os) {
+      addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.missingOs, lang));
     }
 
     if (has('request_sshome_version')) {
-      addUniqueLine(lines, isDe ? 'Installierte ScanSnap Home Version' : 'Installed ScanSnap Home version');
+      addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.sshomeVersion, lang));
     }
 
     if (has('request_firmware_version')) {
-      addUniqueLine(lines, isDe ? 'Installierte Firmware-Version des Scanners' : 'Installed scanner firmware version');
+      addUniqueLine(lines, translateEmailText(EMAIL_PHRASES.firmwareVersion, lang));
     }
 
     if (has('screenshot_request')) {
@@ -343,7 +673,7 @@ function EmailBuilder({ session, brain, lang }) {
     }
 
     if (!lines.length) return '';
-    return `${isDe ? 'Für die nächste Prüfung benötigen wir bitte noch folgende Informationen:' : 'For the next review, we still need the following information:'}
+    return `${translateEmailText(EMAIL_PHRASES.requestHeader, lang)}
 
 ${lines.map(line => `- ${line.text}`).join('\n')}`;
   };
@@ -353,10 +683,7 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
     const blocks = [];
 
     if (statusKeys.includes('waiting_response')) {
-      blocks.push(isDe
-        ? 'Bitte testen Sie die oben beschriebenen Schritte und teilen Sie uns das Ergebnis mit.'
-        : 'Please test the steps described above and let us know the result.'
-      );
+      blocks.push(translateEmailText(EMAIL_PHRASES.waitingResponse, lang));
     }
 
     if (statusKeys.includes('resolved_confirmation')) {
@@ -376,10 +703,8 @@ ${lines.map(line => `- ${line.text}`).join('\n')}`;
 
     const analysisLines = analysisLinesForSelected(unique);
     if (analysisLines.length) {
-      parts.push(isDe
-        ? `Gemäß der dokumentierten Analyse wurden die folgenden ausgewählten Schritte für Ihren ${model} bereits durchgeführt:\n\n${analysisLines.join('\n')}`
-        : `According to the documented analysis, the following selected steps have already been performed for your ${model}:\n\n${analysisLines.join('\n')}`
-      );
+      const header = translateEmailText(EMAIL_PHRASES.analysisHeader, lang).replace('{model}', model);
+      parts.push(`${header}\n\n${analysisLines.join('\n')}`);
     }
 
     const requestBlock = requestBlockForSelected(unique);
