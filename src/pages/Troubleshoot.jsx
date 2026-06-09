@@ -264,6 +264,36 @@ function actionLabel(keyName, lang = 'de') {
   return labels[keyName]?.[langKey(lang)] || labels[keyName]?.en || keyName;
 }
 
+
+const WAITING_OPTIONS = [
+  { key: 'error_screenshot', label: { de:'Fehlermeldung / Screenshot', en:'Error message / screenshot', pt:'Mensagem de erro / screenshot', es:'Mensaje de error / captura', fr:'Message d’erreur / capture', it:'Messaggio di errore / screenshot', nl:'Foutmelding / screenshot', ja:'エラーメッセージ / スクリーンショット' } },
+  { key: 'device_manager', label: { de:'Geräte-Manager Screenshot', en:'Device Manager screenshot', pt:'Screenshot do Gestor de Dispositivos', es:'Captura del Administrador de dispositivos', fr:'Capture du Gestionnaire de périphériques', it:'Screenshot di Gestione dispositivi', nl:'Screenshot van Apparaatbeheer', ja:'デバイスマネージャーのスクリーンショット' } },
+  { key: 'sshome_version', label: { de:'ScanSnap Home Version', en:'ScanSnap Home version', pt:'Versão do ScanSnap Home', es:'Versión de ScanSnap Home', fr:'Version de ScanSnap Home', it:'Versione ScanSnap Home', nl:'ScanSnap Home-versie', ja:'ScanSnap Homeバージョン' } },
+  { key: 'firmware_version', label: { de:'Firmware-Version', en:'Firmware version', pt:'Versão do firmware', es:'Versión de firmware', fr:'Version du firmware', it:'Versione firmware', nl:'Firmwareversie', ja:'ファームウェアバージョン' } },
+  { key: 'os_version', label: { de:'OS-Version', en:'OS version', pt:'Versão do sistema operativo', es:'Versión del sistema operativo', fr:'Version du système d’exploitation', it:'Versione sistema operativo', nl:'OS-versie', ja:'OSバージョン' } },
+  { key: 'scanner_led', label: { de:'Scanner-Display / LED', en:'Scanner display / LED', pt:'Display / LED do scanner', es:'Pantalla / LED del escáner', fr:'Écran / LED du scanner', it:'Display / LED dello scanner', nl:'Scannerdisplay / LED', ja:'スキャナー画面 / LED' } },
+  { key: 'general_reply', label: { de:'Kundenantwort allgemein', en:'General customer reply', pt:'Resposta geral do cliente', es:'Respuesta general del cliente', fr:'Réponse générale du client', it:'Risposta generale del cliente', nl:'Algemene klantreactie', ja:'一般的なお客様返信' } },
+  { key: 'custom', label: { de:'Eigene Notiz', en:'Custom note', pt:'Nota própria', es:'Nota propia', fr:'Note personnalisée', it:'Nota personalizzata', nl:'Eigen notitie', ja:'任意メモ' } },
+];
+
+function waitingText(key, lang = 'de') {
+  const item = WAITING_OPTIONS.find(o => o.key === key);
+  if (!item) return key;
+  return item.label?.[langKey(lang)] || item.label?.en || item.label?.de || key;
+}
+
+function waitingUi(keyName, lang = 'de') {
+  const labels = {
+    title: { de:'Worauf warten wir?', en:'What are we waiting for?', pt:'De que resposta estamos à espera?', es:'¿Qué estamos esperando?', fr:'Qu’attendons-nous ?', it:'Cosa stiamo aspettando?', nl:'Waar wachten we op?', ja:'何を待っていますか？' },
+    hint: { de:'Wähle nur die Info, ohne die dieser Schritt nicht sauber weitergeht.', en:'Select only the information needed to continue this step.', pt:'Seleciona apenas a informação necessária para continuar este passo.', es:'Selecciona solo la información necesaria para continuar este paso.', fr:'Sélectionne uniquement l’information nécessaire pour continuer cette étape.', it:'Seleziona solo l’informazione necessaria per continuare questo passaggio.', nl:'Selecteer alleen de informatie die nodig is om verder te gaan.', ja:'この手順を続けるために必要な情報だけを選択してください。' },
+    note: { de:'Zusatznotiz optional', en:'Optional note', pt:'Nota opcional', es:'Nota opcional', fr:'Note facultative', it:'Nota opzionale', nl:'Optionele notitie', ja:'任意メモ' },
+    save: { de:'Warten speichern', en:'Save waiting point', pt:'Guardar ponto de espera', es:'Guardar punto de espera', fr:'Enregistrer le point d’attente', it:'Salva punto di attesa', nl:'Wachtpunt opslaan', ja:'待機ポイントを保存' },
+    cancel: { de:'Abbrechen', en:'Cancel', pt:'Cancelar', es:'Cancelar', fr:'Annuler', it:'Annulla', nl:'Annuleren', ja:'キャンセル' },
+  };
+  return labels[keyName]?.[langKey(lang)] || labels[keyName]?.en || keyName;
+}
+
+
 function error5BranchSteps(branch, lang = 'de') {
   const key = langKey(lang);
 
@@ -512,6 +542,9 @@ export default function Troubleshoot() {
   const [session, setLocalSession] = useState(getSession());
   const [showBrain, setShowBrain] = useState(false);
   const [acceptedTopicShifts, setAcceptedTopicShifts] = useState({});
+  const [waitingPromptOpen, setWaitingPromptOpen] = useState(false);
+  const [selectedWaitingKeys, setSelectedWaitingKeys] = useState([]);
+  const [waitingNoteDraft, setWaitingNoteDraft] = useState('');
 
   const { steps, currentStepIndex, problem, rootCause, issueType, status, kbEntry } = session;
 
@@ -606,7 +639,51 @@ export default function Troubleshoot() {
   };
 
 
+  const saveWaitingPoint = () => {
+    const keys = selectedWaitingKeys.length ? selectedWaitingKeys : ['general_reply'];
+    const waitingForText = keys.map(k => waitingText(k, language)).join(', ');
+    const note = waitingNoteDraft.trim() || `${waitingUi('title', language)} ${waitingForText}`;
+
+    const updatedSteps = [...steps];
+    updatedSteps[currentStepIndex] = {
+      ...updatedSteps[currentStepIndex],
+      status: 'waiting_customer',
+      waitingFor: keys,
+      waitingForText,
+      waitingNote: note,
+      note: note,
+      timestamp: new Date().toISOString(),
+    };
+
+    const performedSteps = [
+      ...(session.performedSteps || []),
+      {
+        title: updatedSteps[currentStepIndex].title || updatedSteps[currentStepIndex].stepId || 'Waiting point',
+        status: 'waiting_customer',
+        waitingFor: keys,
+        waitingForText,
+        note,
+        timestamp: new Date().toISOString(),
+      }
+    ];
+
+    playAction();
+    updateSession({ steps: updatedSteps, performedSteps, status: 'waiting_customer' });
+    setWaitingPromptOpen(false);
+    setSelectedWaitingKeys([]);
+    setWaitingNoteDraft('');
+    setTimeout(() => navigate('/final'), 300);
+  };
+
+
   const handleStepResult = async (result, note = '') => {
+    if (result === 'waiting_customer') {
+      setWaitingPromptOpen(true);
+      setSelectedWaitingKeys([]);
+      setWaitingNoteDraft('');
+      return;
+    }
+
     const updatedSteps = [...steps];
     updatedSteps[currentStepIndex] = {
       ...updatedSteps[currentStepIndex],
@@ -645,13 +722,6 @@ export default function Troubleshoot() {
         });
       } catch {}
       setTimeout(() => navigate('/final'), 500);
-      return;
-    }
-
-    if (result === 'waiting_customer') {
-      playAction();
-      updateSession({ steps: updatedSteps, performedSteps, status: 'waiting_customer' });
-      setTimeout(() => navigate('/final'), 300);
       return;
     }
 
@@ -945,10 +1015,76 @@ export default function Troubleshoot() {
               exit={{ opacity: 0, height: 0 }}
               className="overflow-hidden"
             >
-              <BrainPanel brain={brain} />
+              <div className="relative overflow-visible">
+                <div
+                  className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-[240px] w-[640px] h-[430px] rounded-full blur-3xl opacity-75"
+                  style={{
+                    background: 'radial-gradient(circle at center, rgba(69,226,255,0.18) 0%, rgba(177,79,255,0.15) 28%, rgba(27,13,48,0.10) 52%, transparent 76%)',
+                    filter: 'blur(48px)',
+                  }}
+                />
+                <BrainPanel brain={brain} />
+                <div
+                  className="pointer-events-none absolute left-1/2 -translate-x-1/2 top-[210px] w-[700px] h-[500px]"
+                  style={{
+                    background: 'radial-gradient(circle at center, rgba(0,0,0,0) 0%, rgba(3,5,14,0) 26%, rgba(4,6,17,0.12) 38%, rgba(4,6,17,0.42) 58%, rgba(4,6,17,0.86) 76%, rgba(4,6,17,0.96) 100%)',
+                    borderRadius: '9999px',
+                    filter: 'blur(18px)',
+                    mixBlendMode: 'multiply',
+                  }}
+                />
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
+
+        {waitingPromptOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center px-5" style={{ background: 'rgba(0,0,0,0.64)', backdropFilter: 'blur(10px)' }}>
+            <motion.div
+              initial={{ opacity: 0, y: 18, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="w-full max-w-lg rounded-3xl p-6"
+              style={{ background: 'linear-gradient(135deg, rgba(5,10,24,0.96), rgba(18,6,22,0.96))', border: '1px solid rgba(120,240,255,0.16)', boxShadow: '0 0 70px rgba(45,212,191,0.14)' }}
+            >
+              <p className="text-xl font-semibold text-white">{waitingUi('title', language)}</p>
+              <p className="mt-2 text-sm text-white/50 leading-relaxed">{waitingUi('hint', language)}</p>
+
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+                {WAITING_OPTIONS.map((item) => {
+                  const active = selectedWaitingKeys.includes(item.key);
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      onClick={() => setSelectedWaitingKeys(prev => active ? prev.filter(k => k !== item.key) : [...prev, item.key])}
+                      className={`rounded-2xl px-4 py-3 text-sm text-left transition-all ${active ? 'bg-primary/15 border-primary/45 text-white' : 'bg-white/[0.035] border-white/10 text-white/65 hover:text-white hover:border-white/20'}`}
+                      style={{ borderWidth: 1 }}
+                    >
+                      {waitingText(item.key, language)}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <textarea
+                value={waitingNoteDraft}
+                onChange={(e) => setWaitingNoteDraft(e.target.value)}
+                placeholder={waitingUi('note', language)}
+                className="mt-4 w-full rounded-2xl px-4 py-3 text-sm text-white outline-none"
+                style={{ minHeight: 78, background: 'rgba(0,0,0,0.26)', border: '1px solid rgba(255,255,255,0.10)', resize: 'vertical' }}
+              />
+
+              <div className="mt-5 flex items-center justify-end gap-3">
+                <button onClick={() => setWaitingPromptOpen(false)} className="text-sm text-white/45 hover:text-white/75">
+                  {waitingUi('cancel', language)}
+                </button>
+                <Button onClick={saveWaitingPoint} className="bg-primary hover:bg-primary/90 text-white">
+                  {waitingUi('save', language)}
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        )}
       </div>
     </div>
   );

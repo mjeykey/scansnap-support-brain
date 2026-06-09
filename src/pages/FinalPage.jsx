@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { CheckCircle2, XCircle, MinusCircle, Clock, ChevronDown, ChevronUp, RotateCcw, AlertTriangle, Copy, Mail, FileText, ArrowLeft } from 'lucide-react';
 import { toast } from 'sonner';
-import { getSession, getSettings } from '@/lib/sessionStore';
+import { getSession, getSettings, setSession } from '@/lib/sessionStore';
 import { runDecisionEngine } from '@/lib/decisionEngine';
 import { buildDiagnosticTimeline, determineFinalState, buildAutoCaseSummary, buildCleanCaseSummary } from '@/lib/diagnosticMemory';
 import { EMAIL_MODULES, assembleEmail, suggestModules, getModuleText } from '@/lib/emailModules';
@@ -1004,7 +1004,328 @@ function LocalCaseSummary({ session, lang }) {
 
 // ── Step History List ────────────────────────────────────────
 
-function StepHistoryList({ steps, lang }) {
+
+
+function finalLangKey(lang = 'de') {
+  const key = String(lang || 'de').toLowerCase();
+  if (key.startsWith('pt')) return 'pt';
+  if (key.startsWith('es')) return 'es';
+  if (key.startsWith('fr')) return 'fr';
+  if (key.startsWith('it')) return 'it';
+  if (key.startsWith('nl')) return 'nl';
+  if (key.startsWith('ja')) return 'ja';
+  if (key.startsWith('en')) return 'en';
+  return 'de';
+}
+
+const FINAL_WAITING_LABELS = {
+  customerReply: { de:'Kundenrückmeldung eintragen', en:'Enter customer reply', pt:'Inserir resposta do cliente', es:'Introducir respuesta del cliente', fr:'Saisir la réponse client', it:'Inserire risposta del cliente', nl:'Klantreactie invoeren', ja:'お客様の返信を入力' },
+  analyzeContinue: { de:'Antwort auswerten und Troubleshooting fortsetzen', en:'Analyze reply and continue troubleshooting', pt:'Analisar resposta e continuar troubleshooting', es:'Analizar respuesta y continuar troubleshooting', fr:'Analyser la réponse et continuer le troubleshooting', it:'Analizzare risposta e continuare troubleshooting', nl:'Reactie analyseren en troubleshooting voortzetten', ja:'返信を分析してトラブルシューティングを続行' },
+  reminder: { de:'Erinnerungs-E-Mail erstellen', en:'Create reminder email', pt:'Criar e-mail de lembrete', es:'Crear e-mail de recordatorio', fr:'Créer un e-mail de relance', it:'Creare e-mail di promemoria', nl:'Herinneringsmail maken', ja:'リマインドメールを作成' },
+  waitingFor: { de:'Benötigte Rückmeldung', en:'Needed reply', pt:'Resposta necessária', es:'Respuesta necesaria', fr:'Réponse nécessaire', it:'Risposta necessaria', nl:'Benodigde reactie', ja:'必要な返信' },
+  copy: { de:'Kopieren', en:'Copy', pt:'Copiar', es:'Copiar', fr:'Copier', it:'Copia', nl:'Kopiëren', ja:'コピー' },
+  reminderTitle: { de:'Erinnerungs-E-Mail', en:'Reminder email', pt:'E-mail de lembrete', es:'E-mail de recordatorio', fr:'E-mail de relance', it:'E-mail di promemoria', nl:'Herinneringsmail', ja:'リマインドメール' },
+};
+
+function finalWaitingText(key, lang = 'de') {
+  return FINAL_WAITING_LABELS[key]?.[finalLangKey(lang)] || FINAL_WAITING_LABELS[key]?.en || key;
+}
+
+function buildFollowupReminderEmail(session, step, lang = 'de') {
+  const l = finalLangKey(lang);
+  const waitingFor = step?.waitingForText || step?.waitingNote || step?.note || (l === 'en' ? 'the requested information' : 'die angefragte Information');
+  const caseNumber = session?.caseNumber || session?.caseNo || session?.caseId || '';
+
+  const templates = {
+    de: `Guten Tag,
+
+ich wollte höflich nachfragen, ob Sie weiterhin Unterstützung zu Ihrem ScanSnap benötigen.
+
+Falls ja, senden Sie uns bitte noch folgende Information zu, damit wir Ihre Anfrage weiter prüfen können:
+
+- ${waitingFor}
+
+Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen in Ihrer aktiven Anfrage gebündelt bleiben${caseNumber ? ` (${caseNumber})` : ''}.
+
+Mit freundlichen Grüßen
+
+Marina Karlovic
+PFU Support Team`,
+    en: `Hello,
+
+I just wanted to kindly follow up and ask whether you still need support with your ScanSnap.
+
+If yes, please send us the following information so we can continue reviewing your request:
+
+- ${waitingFor}
+
+Please reply directly to this email so all information stays together in your active support request${caseNumber ? ` (${caseNumber})` : ''}.
+
+Kind regards
+
+Marina Karlovic
+PFU Support Team`,
+    pt: `Bom dia,
+
+Gostaria apenas de perguntar se ainda precisa de suporte com o seu ScanSnap.
+
+Se sim, por favor envie-nos ainda a seguinte informação para podermos continuar a analisar o seu pedido:
+
+- ${waitingFor}
+
+Por favor, responda diretamente a este e-mail para que todas as informações permaneçam reunidas no seu pedido de suporte ativo${caseNumber ? ` (${caseNumber})` : ''}.
+
+Atenciosamente
+
+Marina Karlovic
+PFU Support Team`,
+    es: `Buenos días,
+
+Quería preguntarle amablemente si todavía necesita soporte con su ScanSnap.
+
+Si es así, envíenos todavía la siguiente información para poder continuar revisando su solicitud:
+
+- ${waitingFor}
+
+Por favor, responda directamente a este e-mail para que toda la información permanezca reunida en su solicitud de soporte activa${caseNumber ? ` (${caseNumber})` : ''}.
+
+Atentamente
+
+Marina Karlovic
+PFU Support Team`,
+    fr: `Bonjour,
+
+Je souhaitais simplement vous demander si vous avez encore besoin d’assistance pour votre ScanSnap.
+
+Si oui, veuillez nous envoyer l’information suivante afin que nous puissions poursuivre l’analyse de votre demande :
+
+- ${waitingFor}
+
+Veuillez répondre directement à cet e-mail afin que toutes les informations restent regroupées dans votre demande de support active${caseNumber ? ` (${caseNumber})` : ''}.
+
+Cordialement
+
+Marina Karlovic
+PFU Support Team`,
+    it: `Buongiorno,
+
+Volevo gentilmente chiederle se ha ancora bisogno di supporto per il suo ScanSnap.
+
+In caso affermativo, ci invii ancora la seguente informazione, così possiamo continuare a verificare la sua richiesta:
+
+- ${waitingFor}
+
+La preghiamo di rispondere direttamente a questa e-mail, così tutte le informazioni restano raccolte nella sua richiesta di supporto attiva${caseNumber ? ` (${caseNumber})` : ''}.
+
+Cordiali saluti
+
+Marina Karlovic
+PFU Support Team`,
+    nl: `Goedendag,
+
+Ik wilde vriendelijk navragen of u nog ondersteuning nodig heeft voor uw ScanSnap.
+
+Als dat zo is, stuur ons dan alstublieft nog de volgende informatie, zodat wij uw verzoek verder kunnen controleren:
+
+- ${waitingFor}
+
+Reageer alstublieft rechtstreeks op deze e-mail, zodat alle informatie gebundeld blijft in uw actieve supportverzoek${caseNumber ? ` (${caseNumber})` : ''}.
+
+Met vriendelijke groet
+
+Marina Karlovic
+PFU Support Team`,
+    ja: `お世話になっております。
+
+ScanSnapについて、引き続きサポートが必要か確認のためご連絡いたしました。
+
+必要な場合は、確認を進めるため以下の情報をお送りください：
+
+- ${waitingFor}
+
+情報が現在のサポート依頼にまとまるよう、このメールに直接ご返信ください${caseNumber ? ` (${caseNumber})` : ''}。
+
+よろしくお願いいたします。
+
+Marina Karlovic
+PFU Support Team`,
+  };
+
+  return templates[l] || templates.en;
+}
+
+function inferNextStepFromReply(reply = '', session = {}, lang = 'de') {
+  const text = String(reply || '').toLowerCase();
+  const l = finalLangKey(lang);
+  const make = (title, instruction, route = 'CUSTOMER_REPLY') => ({
+    title,
+    instruction,
+    route,
+    stepId: `CUSTOMER_REPLY_${Date.now()}`,
+    status: 'pending',
+    result: '',
+    note: '',
+    timestamp: null,
+    source: 'customer_reply_analysis',
+  });
+
+  if (/nicht angezeigt|not shown|not visible|não aparece|nao aparece|não é exibido|no aparece|pas affich|non viene visualizzato|niet zichtbaar|表示されない|出ない/.test(text)) {
+    return make(
+      l === 'pt' ? 'USB-Erkennung erneut eingrenzen' : l === 'en' ? 'Narrow down USB detection' : 'USB-Erkennung erneut eingrenzen',
+      l === 'pt' ? 'Der Scanner wird offenbar nicht im Geräte-Manager angezeigt. Prüfe als Nächstes direkten USB-Anschluss, anderen USB-Port, anderes USB-Kabel und ob der Scanner überhaupt als USB-Gerät erscheint.' : l === 'en' ? 'The scanner does not appear in Device Manager. Next check direct USB connection, another USB port, another USB cable and whether the scanner appears as any USB device.' : 'Der Scanner wird offenbar nicht im Geräte-Manager angezeigt. Prüfe als Nächstes direkten USB-Anschluss, anderen USB-Port, anderes USB-Kabel und ob der Scanner überhaupt als USB-Gerät erscheint.',
+      'USB_CONNECTION'
+    );
+  }
+
+  if (/unbekannt|unknown device|dispositivo desconhecido|dispositivo desconocido|périphérique inconnu|periferica sconosciuta|onbekend apparaat|不明/.test(text)) {
+    return make(
+      l === 'en' ? 'Handle unknown USB device' : 'Unbekanntes USB-Gerät prüfen',
+      l === 'en' ? 'Windows detects something, but not correctly. Remove the unknown device in Device Manager, disconnect USB, restart the PC, reconnect directly and then check ScanSnap Home again.' : 'Windows erkennt ein Gerät, aber nicht korrekt. Entferne das unbekannte Gerät im Geräte-Manager, trenne USB, starte den PC neu, verbinde direkt erneut und prüfe danach ScanSnap Home.',
+      'USB_CONNECTION'
+    );
+  }
+
+  if (/korrekt|correctly|visible|sichtbar|aparece corretamente|correctamente|correctement|correttamente|zichtbaar|正常/.test(text)) {
+    return make(
+      l === 'en' ? 'Check ScanSnap Home registration' : 'ScanSnap Home Registrierung prüfen',
+      l === 'en' ? 'The scanner seems visible to Windows. Continue with removing and reconnecting the scanner in ScanSnap Home, then test again.' : 'Der Scanner scheint in Windows sichtbar zu sein. Fahre mit Entfernen und erneuter Registrierung des Scanners in ScanSnap Home fort und teste danach erneut.',
+      'SOFTWARE'
+    );
+  }
+
+  return make(
+    l === 'en' ? 'Evaluate customer reply' : l === 'pt' ? 'Avaliar resposta do cliente' : 'Kundenrückmeldung auswerten',
+    reply || (l === 'en' ? 'Review the customer reply and continue with the most fitting next step.' : 'Kundenrückmeldung prüfen und mit dem passendsten nächsten Schritt fortfahren.'),
+    'CUSTOMER_REPLY'
+  );
+}
+
+
+function finalStatusText(session, ui, lang = 'de') {
+  const status = session?.status || '';
+  const hasWaiting = (session?.steps || []).some(s => s.status === 'waiting_customer');
+
+  const map = {
+    waiting: { de: 'Warte auf Kundenrückmeldung', en: 'Waiting for customer reply', pt: 'A aguardar resposta do cliente', es: 'Esperando respuesta del cliente', fr: 'En attente de réponse client', it: 'In attesa di risposta del cliente', nl: 'Wachten op reactie klant', ja: 'お客様の返信待ち' },
+    exhausted: { de: 'Alle Schritte ausgeschöpft', en: 'All steps exhausted', pt: 'Todos os passos esgotados', es: 'Todos los pasos agotados', fr: 'Toutes les étapes sont épuisées', it: 'Tutti i passaggi esauriti', nl: 'Alle stappen uitgeput', ja: 'すべての手順を実施済み' },
+    solved: { de: 'Problem gelöst', en: 'Issue resolved', pt: 'Problema resolvido', es: 'Problema resuelto', fr: 'Problème résolu', it: 'Problema risolto', nl: 'Probleem opgelost', ja: '問題解決' },
+  };
+  const key = String(lang || 'de').toLowerCase();
+  const l = key.startsWith('pt') ? 'pt' : key.startsWith('es') ? 'es' : key.startsWith('fr') ? 'fr' : key.startsWith('it') ? 'it' : key.startsWith('nl') ? 'nl' : key.startsWith('ja') ? 'ja' : key.startsWith('en') ? 'en' : 'de';
+
+  if (status === 'solved') return map.solved[l];
+  if (status === 'waiting_customer' || hasWaiting) return map.waiting[l];
+  return ui.steps_exhausted || map.exhausted[l];
+}
+
+function resumeStepFromFinal(steps, index, navigate) {
+  const normalized = (steps || []).map((s, i) => {
+    if (i === index) return { ...s, status: 'pending', result: '', note: s.note || '', timestamp: null };
+    return s;
+  });
+  setSession({
+    steps: normalized,
+    currentStepIndex: index,
+    status: 'troubleshooting',
+  });
+  navigate('/troubleshoot');
+}
+
+
+
+function WaitingReplyPanel({ session, steps, lang, navigate }) {
+  const waitingSteps = (steps || []).map((s, index) => ({ ...s, index })).filter(s => s.status === 'waiting_customer');
+  const [activeIndex, setActiveIndex] = useState(waitingSteps[0]?.index ?? null);
+  const [reply, setReply] = useState('');
+  const [reminderEmail, setReminderEmail] = useState('');
+
+  if (!waitingSteps.length) return null;
+
+  const active = waitingSteps.find(s => s.index === activeIndex) || waitingSteps[0];
+
+  const continueFromReply = () => {
+    const nextStep = inferNextStepFromReply(reply, session, lang);
+    const updatedSteps = (steps || []).map((s, i) => i === active.index ? {
+      ...s,
+      status: 'done',
+      customerReply: reply,
+      note: [s.note, reply ? `Kundenrückmeldung: ${reply}` : 'Kundenrückmeldung eingegangen'].filter(Boolean).join(' | '),
+      timestamp: new Date().toISOString(),
+    } : s);
+
+    const withNext = [...updatedSteps.slice(0, active.index + 1), nextStep, ...updatedSteps.slice(active.index + 1)];
+    setSession({
+      steps: withNext,
+      currentStepIndex: active.index + 1,
+      status: 'troubleshooting',
+      customerReply: reply,
+    });
+    navigate('/troubleshoot');
+  };
+
+  const buildReminder = () => setReminderEmail(buildFollowupReminderEmail(session, active, lang));
+  const copyReminder = () => {
+    navigator.clipboard.writeText(reminderEmail);
+    toast.success(finalWaitingText('copy', lang));
+  };
+
+  return (
+    <Section title={`${finalWaitingText('waitingFor', lang)} · ${waitingSteps.length}`} defaultOpen={true}>
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-2">
+          {waitingSteps.map((s) => (
+            <button
+              key={s.index}
+              onClick={() => { setActiveIndex(s.index); setReply(''); setReminderEmail(''); }}
+              className={`rounded-full px-3 py-1.5 text-[11px] transition-all ${active.index === s.index ? 'bg-amber-400/15 text-amber-300 border-amber-400/35' : 'bg-white/[0.04] text-white/40 border-white/10 hover:text-white/70'}`}
+              style={{ borderWidth: 1 }}
+            >
+              {s.waitingForText || s.waitingNote || s.note || `Step ${s.index + 1}`}
+            </button>
+          ))}
+        </div>
+
+        <div className="rounded-2xl p-4" style={{ background: 'rgba(251,191,36,0.055)', border: '1px solid rgba(251,191,36,0.16)' }}>
+          <p className="text-xs uppercase tracking-widest text-amber-300/70">{finalWaitingText('waitingFor', lang)}</p>
+          <p className="mt-1 text-sm text-white/78">{active.waitingForText || active.waitingNote || active.note}</p>
+        </div>
+
+        <textarea
+          value={reply}
+          onChange={(e) => setReply(e.target.value)}
+          placeholder={finalWaitingText('customerReply', lang)}
+          className="w-full rounded-2xl px-4 py-3 text-sm text-white outline-none"
+          style={{ minHeight: 88, background: 'rgba(0,0,0,0.26)', border: '1px solid rgba(255,255,255,0.10)', resize: 'vertical' }}
+        />
+
+        <div className="flex flex-wrap gap-2">
+          <Button onClick={continueFromReply} className="bg-primary hover:bg-primary/90 text-white">
+            {finalWaitingText('analyzeContinue', lang)}
+          </Button>
+          <Button onClick={buildReminder} variant="outline" className="border-white/10 text-white/65 hover:text-white">
+            {finalWaitingText('reminder', lang)}
+          </Button>
+        </div>
+
+        {reminderEmail && (
+          <div className="rounded-xl overflow-hidden" style={{ background: 'rgba(248,248,252,0.98)', border: '1px solid rgba(251,191,36,0.25)' }}>
+            <div className="flex items-center justify-between px-4 py-2.5 border-b border-black/6">
+              <span className="text-xs font-semibold text-black">{finalWaitingText('reminderTitle', lang)}</span>
+              <Button size="sm" onClick={copyReminder} className="h-7 text-xs bg-primary hover:bg-primary/90 text-white">
+                <Copy className="w-3.5 h-3.5 mr-1" />
+                {finalWaitingText('copy', lang)}
+              </Button>
+            </div>
+            <pre className="p-4 whitespace-pre-wrap text-[12px] leading-relaxed text-black font-sans">{reminderEmail}</pre>
+          </div>
+        )}
+      </div>
+    </Section>
+  );
+}
+
+
+function StepHistoryList({ steps, lang, onResumeStep }) {
   if (!steps || steps.length === 0) return <p className="text-xs text-white/25 italic">No steps performed.</p>;
 
   return (
@@ -1026,15 +1347,21 @@ function StepHistoryList({ steps, lang }) {
         }[s.status] || 'text-white/30';
 
         return (
-          <div key={i} className="flex items-start gap-2.5 px-3 py-2.5 rounded-xl"
-            style={{ background: 'rgba(255,255,255,0.025)' }}>
+          <button
+            key={i}
+            type="button"
+            onClick={() => onResumeStep && onResumeStep(i)}
+            className="w-full flex items-start gap-2.5 px-3 py-2.5 rounded-xl text-left transition-colors hover:bg-white/[0.05]"
+            style={{ background: 'rgba(255,255,255,0.025)' }}
+            title={lang === 'de' ? 'An diesem Schritt fortsetzen' : 'Resume from this step'}
+          >
             {icon}
             <div className="flex-1 min-w-0">
               <p className={`text-xs font-medium leading-snug ${statusColor}`}>{resolved.title}</p>
               {s.note && <p className="text-[10px] text-white/25 italic mt-0.5">{s.note}</p>}
             </div>
             <span className="text-[9px] text-white/20 uppercase tracking-wider shrink-0">{s.status?.replace('_', ' ')}</span>
-          </div>
+          </button>
         );
       })}
     </div>
@@ -1115,7 +1442,11 @@ export default function FinalPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
           <button
-            onClick={() => navigate('/troubleshoot')}
+            onClick={() => {
+              const resumeIndex = steps.findIndex(s => s.status === 'waiting_customer' || s.status === 'pending');
+              if (resumeIndex >= 0) resumeStepFromFinal(steps, resumeIndex, navigate);
+              else navigate('/troubleshoot');
+            }}
             className="flex items-center gap-1.5 text-sm text-white/30 hover:text-white/60 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" />
@@ -1130,25 +1461,29 @@ export default function FinalPage() {
 
         {/* Status */}
         <div className={`flex items-center gap-2.5 rounded-2xl px-5 py-4 border ${
-          isSolved ? 'border-primary/25 bg-primary/[0.05]' : 'border-secondary/20 bg-secondary/[0.04]'
+          isSolved ? 'border-primary/25 bg-primary/[0.05]' : (steps.some(s => s.status === 'waiting_customer') ? 'border-amber-400/25 bg-amber-400/[0.045]' : 'border-secondary/20 bg-secondary/[0.04]')
         }`}>
           {isSolved
             ? <CheckCircle2 className="w-5 h-5 text-primary shrink-0" />
-            : <AlertTriangle className="w-5 h-5 text-secondary shrink-0" />
+            : steps.some(s => s.status === 'waiting_customer')
+              ? <Clock className="w-5 h-5 text-amber-400 shrink-0" />
+              : <AlertTriangle className="w-5 h-5 text-secondary shrink-0" />
           }
           <div>
-            <p className={`text-sm font-semibold ${isSolved ? 'text-primary' : 'text-secondary'}`}>
-              {isSolved ? (ui.solved || 'Issue Resolved') : (ui.steps_exhausted || 'Steps Exhausted')}
+            <p className={`text-sm font-semibold ${isSolved ? 'text-primary' : (steps.some(s => s.status === 'waiting_customer') ? 'text-amber-400' : 'text-secondary')}`}>
+              {finalStatusText(session, ui, lang)}
             </p>
             <p className="text-[10px] text-white/30 mt-0.5">
-              {completed.length} ✓ · {failed.length} ✗ · {skipped.length} skipped
+              {completed.length} ✓ · {failed.length} ✗ · {steps.filter(s => s.status === 'waiting_customer').length} waiting · {skipped.length} skipped
             </p>
           </div>
         </div>
 
+        <WaitingReplyPanel session={session} steps={steps} lang={lang} navigate={navigate} />
+
         {/* Step history */}
         <Section title={`${ui.ts_progress || 'Troubleshooting History'} · ${steps.filter(s => s.status !== 'pending').length} steps`}>
-          <StepHistoryList steps={steps} lang={lang} />
+          <StepHistoryList steps={steps} lang={lang} onResumeStep={(index) => resumeStepFromFinal(steps, index, navigate)} />
         </Section>
 
         {/* Email builder */}
