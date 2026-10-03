@@ -4,7 +4,7 @@
 // for similar future cases.
 // ============================================================
 
-const EXPERIENCE_KEY = 'scansnap_experience_steps_v1';
+const EXPERIENCE_KEY = 'support_experience_steps_v1';
 
 function normalize(v) {
   return String(v || '').trim().toLowerCase();
