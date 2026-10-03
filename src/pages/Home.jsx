@@ -4,10 +4,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Globe, ArrowLeft, Sparkles } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { resetSession, setSession, getSession, updateSettings } from '@/lib/sessionStore';
-import { searchKnowledgeBase, getKBEntryInLanguage } from '@/lib/localData';
+import { searchKnowledgeBase } from '@/lib/localData';
 import { generateNextDynamicStep, classifyIssueCategory } from '@/lib/decisionEngine';
 import { detectModelFromText } from '@/lib/modelDetector';
-import { getExperienceSteps } from '@/lib/experienceEngine';
 import brainNeon from '@/assets/brain-neon.png';
 
 const BRAIN_LABELS = {
