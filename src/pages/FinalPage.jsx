@@ -557,11 +557,7 @@ function EmailBuilder({ session, brain, lang }) {
 
   const moduleStepPatterns = {
     usb_direct: /usb|direkt|direct|anschluss|cable|kabel/i,
-    firmware_update_normal: /firmware|update/i,
-    sshomeclean: /sshome|cleanup|bereinig|reinstall|neu install|device home/i,
-    sfc_dism: /sfc|dism|integrity|systemintegrität|windows/i,
-    device_manager_usb: /geräte-manager|device manager|usb-stack|usb stack/i,
-    firmware_recovery_instructions: /recovery|top sensor|empty arm|firmware-wiederherstellung/i,
+    wifi_check: /wifi|wi-fi|wlan|network|netzwerk|router/i,
   };
 
   const normalize = (value) => String(value || '').toLowerCase();
@@ -1379,11 +1375,11 @@ function HardwareProcessPanel({ session, lang }) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl p-4" style={{ background: process.recommendedProcess === 'advance_exchange' ? 'rgba(45,212,191,0.06)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
+      <div className="rounded-xl p-4" style={{ background: process.recommendedProcess === 'hardware_process' ? 'rgba(45,212,191,0.06)' : 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
         <div className="flex items-center justify-between gap-2 mb-2">
           <p className="text-sm font-semibold text-white/75">{summary.title}</p>
           <span className="text-[9px] uppercase tracking-widest text-primary/70 border border-primary/20 rounded-full px-2 py-1">
-            {process.recommendedProcess === 'advance_exchange' ? (lang === 'en' ? 'Ready' : 'Bereit') : (lang === 'en' ? 'Check' : 'Prüfen')}
+            {process.recommendedProcess === 'hardware_process' ? (lang === 'en' ? 'Ready' : 'Bereit') : (lang === 'en' ? 'Check' : 'Prüfen')}
           </span>
         </div>
         <p className="text-xs text-white/38 leading-relaxed">{summary.text}</p>
