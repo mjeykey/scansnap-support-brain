@@ -7,7 +7,7 @@
 
 import { base44 } from '@/api/base44Client';
 
-const CACHE_KEY = 'scansnap_kb_translations';
+const CACHE_KEY = 'support_kb_translations';
 
 function getCache() {
   try { return JSON.parse(sessionStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; }
@@ -55,7 +55,7 @@ export async function getLocalizedKBContent(kbEntry, lang) {
   const langName = LANG_NAMES[normalizedLang] || normalizedLang;
 
   try {
-    const prompt = `You are a professional ScanSnap support translator.
+    const prompt = `You are a professional technical support translator.
 Translate the following technical support content from English to ${langName}.
 
 Rules:
@@ -122,7 +122,7 @@ export async function getLocalizedFirmwareSteps(nextSteps, lang) {
   if (cache[cacheK]) return { steps: cache[cacheK], fallback: false };
 
   try {
-    const prompt = `Translate the following ScanSnap support instructions from English to ${langName}.
+    const prompt = `Translate the following technical support instructions from English to ${langName}.
 Preserve all technical terms and model names.
 Return ONLY a JSON array of strings.
 
