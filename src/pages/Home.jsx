@@ -133,14 +133,14 @@ function staticLabel(keyName, lang = 'de') {
 
 
 const COPY = {
-  de: { hello:'Hallo 👋', nameQuestion:'Wie darf ich dich nennen?', namePlaceholder:'Name', sourceTitle:'Danke.', sourceQuestion:'Über welchen Kanal kam der Kontakt?', scannerTitle:(n)=>`Hallo ${n||''} 👋`.trim(), scannerQuestion:'Mit welchem ScanSnap arbeiten wir heute?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Danke ${n||''}.`.trim(), connectionQuestion:'Wie ist der Scanner verbunden?', osTitle:'Gut, nächster Punkt.', osQuestion:'Welches Betriebssystem / welche Umgebung nutzt der Kunde?', problemTitle:'Verstanden.', problemQuestion:'Was passiert aktuell?', problemPlaceholder:'Beschreibe kurz die Fehlermeldung oder das Verhalten…', ready:(m,c)=>`Ich prüfe ${m||'den Scanner'} über ${c||'die gewählte Verbindung'}.`, analyzing:'Ich prüfe die Wissensdatenbank…', back:'Zurück' },
-  en: { hello:'Hello 👋', nameQuestion:'What should I call you?', namePlaceholder:'Name', sourceTitle:'Thank you.', sourceQuestion:'Which channel did the contact come through?', scannerTitle:(n)=>`Hello ${n||''} 👋`.trim(), scannerQuestion:'Which ScanSnap are we working with today?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Thank you ${n||''}.`.trim(), connectionQuestion:'How is the scanner connected?', osTitle:'Good, next point.', osQuestion:'Which operating system / environment is the customer using?', problemTitle:'Understood.', problemQuestion:'What is happening right now?', problemPlaceholder:'Briefly describe the error message or behavior…', ready:(m,c)=>`I will check ${m||'the scanner'} via ${c||'the selected connection'}.`, analyzing:'Checking the knowledge base…', back:'Back' },
-  pt: { hello:'Olá 👋', nameQuestion:'Como posso chamar-te?', namePlaceholder:'Nome', sourceTitle:'Obrigada.', sourceQuestion:'Por que canal chegou o contacto?', scannerTitle:(n)=>`Olá ${n||''} 👋`.trim(), scannerQuestion:'Com que ScanSnap estamos a trabalhar hoje?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Obrigada ${n||''}.`.trim(), connectionQuestion:'Como está o scanner ligado?', osTitle:'Certo, próximo ponto.', osQuestion:'Que sistema operativo / ambiente o cliente usa?', problemTitle:'Entendido.', problemQuestion:'O que está a acontecer agora?', problemPlaceholder:'Descreve brevemente a mensagem de erro ou o comportamento…', ready:(m,c)=>`Vou verificar ${m||'o scanner'} via ${c||'a ligação selecionada'}.`, analyzing:'A verificar a base de conhecimento…', back:'Voltar' },
-  es: { hello:'Hola 👋', nameQuestion:'¿Cómo debo llamarte?', namePlaceholder:'Nombre', scannerTitle:(n)=>`Hola ${n||''} 👋`.trim(), scannerQuestion:'¿Con qué escáner estamos trabajando hoy?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Gracias ${n||''}.`.trim(), connectionQuestion:'¿Cómo está conectado el escáner?', problemTitle:'Entendido.', problemQuestion:'¿Qué ocurre actualmente?', problemPlaceholder:'Describe brevemente el mensaje de error o el comportamiento…', ready:(m,c)=>`Voy a revisar ${m||'el escáner'} mediante ${c||'la conexión seleccionada'}.`, analyzing:'Consultando la base de conocimiento…', back:'Atrás' },
-  fr: { hello:'Bonjour 👋', nameQuestion:'Comment puis-je t’appeler ?', namePlaceholder:'Nom', scannerTitle:(n)=>`Bonjour ${n||''} 👋`.trim(), scannerQuestion:'Avec quel scanner travaillons-nous aujourd’hui ?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Merci ${n||''}.`.trim(), connectionQuestion:'Comment le scanner est-il connecté ?', problemTitle:'Compris.', problemQuestion:'Que se passe-t-il actuellement ?', problemPlaceholder:'Décris brièvement le message d’erreur ou le comportement…', ready:(m,c)=>`Je vais vérifier ${m||'le scanner'} via ${c||'la connexion sélectionnée'}.`, analyzing:'Consultation de la base de connaissances…', back:'Retour' },
-  it: { hello:'Ciao 👋', nameQuestion:'Come posso chiamarti?', namePlaceholder:'Nome', scannerTitle:(n)=>`Ciao ${n||''} 👋`.trim(), scannerQuestion:'Con quale scanner stiamo lavorando oggi?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Grazie ${n||''}.`.trim(), connectionQuestion:'Come è collegato lo scanner?', problemTitle:'Capito.', problemQuestion:'Che cosa sta succedendo ora?', problemPlaceholder:'Descrivi brevemente il messaggio di errore o il comportamento…', ready:(m,c)=>`Controllerò ${m||'lo scanner'} tramite ${c||'la connessione selezionata'}.`, analyzing:'Consulto la knowledge base…', back:'Indietro' },
-  nl: { hello:'Hallo 👋', nameQuestion:'Hoe mag ik je noemen?', namePlaceholder:'Naam', scannerTitle:(n)=>`Hallo ${n||''} 👋`.trim(), scannerQuestion:'Met welke scanner werken we vandaag?', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`Dank je ${n||''}.`.trim(), connectionQuestion:'Hoe is de scanner verbonden?', problemTitle:'Begrepen.', problemQuestion:'Wat gebeurt er op dit moment?', problemPlaceholder:'Beschrijf kort de foutmelding of het gedrag…', ready:(m,c)=>`Ik controleer ${m||'de scanner'} via ${c||'de geselecteerde verbinding'}.`, analyzing:'Kennisbank wordt gecontroleerd…', back:'Terug' },
-  ja: { hello:'こんにちは 👋', nameQuestion:'どのようにお呼びすればよいですか？', namePlaceholder:'名前', scannerTitle:(n)=>`こんにちは ${n||''} 👋`.trim(), scannerQuestion:'今日はどのスキャナーを確認しますか？', scannerPlaceholder:'iX1600', connectionTitle:(n)=>`${n||''}、ありがとうございます。`.trim(), connectionQuestion:'スキャナーはどのように接続されていますか？', problemTitle:'承知しました。', problemQuestion:'現在どのような問題が発生していますか？', problemPlaceholder:'エラーメッセージや動作を簡単に入力してください…', ready:(m,c)=>`${m||'スキャナー'} を ${c||'選択された接続'} で確認します。`, analyzing:'ナレッジベースを確認しています…', back:'戻る' },
+  de: { hello:'Hallo 👋', nameQuestion:'Wie darf ich dich nennen?', namePlaceholder:'Name', sourceTitle:'Danke.', sourceQuestion:'Über welchen Kanal kam der Kontakt?', scannerTitle:(n)=>`Hallo ${n||''} 👋`.trim(), scannerQuestion:'Mit welchem Gerät/Modell arbeiten wir heute?', scannerPlaceholder:'', connectionTitle:(n)=>`Danke ${n||''}.`.trim(), connectionQuestion:'Wie ist der Scanner verbunden?', osTitle:'Gut, nächster Punkt.', osQuestion:'Welches Betriebssystem / welche Umgebung nutzt der Kunde?', problemTitle:'Verstanden.', problemQuestion:'Was passiert aktuell?', problemPlaceholder:'', ready:(m,c)=>`Ich prüfe ${m||'das Gerät'} über ${c||'die gewählte Verbindung'}.`, analyzing:'Ich prüfe die Wissensdatenbank…', back:'Zurück' },
+  en: { hello:'Hello 👋', nameQuestion:'What should I call you?', namePlaceholder:'Name', sourceTitle:'Thank you.', sourceQuestion:'Which channel did the contact come through?', scannerTitle:(n)=>`Hello ${n||''} 👋`.trim(), scannerQuestion:'Which device/model are we working with today?', scannerPlaceholder:'', connectionTitle:(n)=>`Thank you ${n||''}.`.trim(), connectionQuestion:'How is the scanner connected?', osTitle:'Good, next point.', osQuestion:'Which operating system / environment is the customer using?', problemTitle:'Understood.', problemQuestion:'What is happening right now?', problemPlaceholder:'', ready:(m,c)=>`I will check ${m||'the device'} via ${c||'the selected connection'}.`, analyzing:'Checking the knowledge base…', back:'Back' },
+  pt: { hello:'Olá 👋', nameQuestion:'Como posso chamar-te?', namePlaceholder:'Nome', sourceTitle:'Obrigada.', sourceQuestion:'Por que canal chegou o contacto?', scannerTitle:(n)=>`Olá ${n||''} 👋`.trim(), scannerQuestion:'Com que dispositivo/modelo estamos a trabalhar hoje?', scannerPlaceholder:'', connectionTitle:(n)=>`Obrigada ${n||''}.`.trim(), connectionQuestion:'Como está o scanner ligado?', osTitle:'Certo, próximo ponto.', osQuestion:'Que sistema operativo / ambiente o cliente usa?', problemTitle:'Entendido.', problemQuestion:'O que está a acontecer agora?', problemPlaceholder:'', ready:(m,c)=>`Vou verificar ${m||'o dispositivo'} via ${c||'a ligação selecionada'}.`, analyzing:'A verificar a base de conhecimento…', back:'Voltar' },
+  es: { hello:'Hola 👋', nameQuestion:'¿Cómo debo llamarte?', namePlaceholder:'Nombre', scannerTitle:(n)=>`Hola ${n||''} 👋`.trim(), scannerQuestion:'¿Con qué dispositivo/modelo estamos trabajando hoy?', scannerPlaceholder:'', connectionTitle:(n)=>`Gracias ${n||''}.`.trim(), connectionQuestion:'¿Cómo está conectado el escáner?', problemTitle:'Entendido.', problemQuestion:'¿Qué ocurre actualmente?', problemPlaceholder:'', ready:(m,c)=>`Voy a revisar ${m||'el dispositivo'} mediante ${c||'la conexión seleccionada'}.`, analyzing:'Consultando la base de conocimiento…', back:'Atrás' },
+  fr: { hello:'Bonjour 👋', nameQuestion:'Comment puis-je t’appeler ?', namePlaceholder:'Nom', scannerTitle:(n)=>`Bonjour ${n||''} 👋`.trim(), scannerQuestion:'Avec quel appareil/modèle travaillons-nous aujourd’hui ?', scannerPlaceholder:'', connectionTitle:(n)=>`Merci ${n||''}.`.trim(), connectionQuestion:'Comment le scanner est-il connecté ?', problemTitle:'Compris.', problemQuestion:'Que se passe-t-il actuellement ?', problemPlaceholder:'', ready:(m,c)=>`Je vais vérifier ${m||'l’appareil'} via ${c||'la connexion sélectionnée'}.`, analyzing:'Consultation de la base de connaissances…', back:'Retour' },
+  it: { hello:'Ciao 👋', nameQuestion:'Come posso chiamarti?', namePlaceholder:'Nome', scannerTitle:(n)=>`Ciao ${n||''} 👋`.trim(), scannerQuestion:'Con quale dispositivo/modello stiamo lavorando oggi?', scannerPlaceholder:'', connectionTitle:(n)=>`Grazie ${n||''}.`.trim(), connectionQuestion:'Come è collegato lo scanner?', problemTitle:'Capito.', problemQuestion:'Che cosa sta succedendo ora?', problemPlaceholder:'', ready:(m,c)=>`Controllerò ${m||'il dispositivo'} tramite ${c||'la connessione selezionata'}.`, analyzing:'Consulto la knowledge base…', back:'Indietro' },
+  nl: { hello:'Hallo 👋', nameQuestion:'Hoe mag ik je noemen?', namePlaceholder:'Naam', scannerTitle:(n)=>`Hallo ${n||''} 👋`.trim(), scannerQuestion:'Met welk apparaat/model werken we vandaag?', scannerPlaceholder:'', connectionTitle:(n)=>`Dank je ${n||''}.`.trim(), connectionQuestion:'Hoe is de scanner verbonden?', problemTitle:'Begrepen.', problemQuestion:'Wat gebeurt er op dit moment?', problemPlaceholder:'', ready:(m,c)=>`Ik controleer ${m||'het apparaat'} via ${c||'de geselecteerde verbinding'}.`, analyzing:'Kennisbank wordt gecontroleerd…', back:'Terug' },
+  ja: { hello:'こんにちは 👋', nameQuestion:'どのようにお呼びすればよいですか？', namePlaceholder:'名前', scannerTitle:(n)=>`こんにちは ${n||''} 👋`.trim(), scannerQuestion:'今日はどのデバイス／モデルを確認しますか？', scannerPlaceholder:'', connectionTitle:(n)=>`${n||''}、ありがとうございます。`.trim(), connectionQuestion:'スキャナーはどのように接続されていますか？', problemTitle:'承知しました。', problemQuestion:'現在どのような問題が発生していますか？', problemPlaceholder:'', ready:(m,c)=>`${m||'デバイス'} を ${c||'選択された接続'} で確認します。`, analyzing:'ナレッジベースを確認しています…', back:'戻る' },
 };
 
 function tx(lang, key, ...args) {
@@ -156,7 +156,7 @@ function fieldWidthForStep(step) {
 }
 
 function normalizeModelInput(value) {
-  return (value || '').trim().replace(/^ix/i, 'iX');
+  return (value || '').trim();
 }
 
 const SUPPORT_PATHS = {
@@ -344,15 +344,6 @@ function BrainButton({ active, disabled, analyzing, onClick, language = 'de' }) 
 }
 
 
-const VALID_MODEL_PATTERNS = [
-  /^iX\d{2,4}$/i,              // iX100, iX500, iX1300, iX1400, iX1500, iX1600, iX2500
-  /^S\d{4}i?$/i,               // S1100, S1100i, S1300, S1300i, S1500
-  /^SV\d{3,4}$/i,              // SV600
-  /^ScanSnap\s*iX\d{2,4}$/i,
-  /^ScanSnap\s*S\d{4}i?$/i,
-  /^ScanSnap\s*SV\d{3,4}$/i,
-];
-
 const PROBLEM_KEYWORDS = [
   // DE / EN
   'fehler','error','err','code','meldung','message','nicht','not','kein','keine','no',
@@ -400,12 +391,11 @@ const PROBLEM_KEYWORDS = [
   'インストール','更新','ファームウェア','起動','開かない','デバイス','ボタン','ランプ','赤'
 ];
 
-function looksLikeScannerModel(value) {
+function looksLikeDeviceModel(value) {
   const raw = String(value || '').trim();
-  if (!raw) return false;
-  if (/^[a-z]{4,}$/i.test(raw) && !/(scan|snap|ix|sv)/i.test(raw)) return false;
-  const compact = raw.replace(/\s+/g, '').replace(/[–—]/g, '-');
-  return VALID_MODEL_PATTERNS.some(rx => rx.test(compact));
+  if (raw.length < 2) return false;
+  if (/^(.)\1{2,}$/i.test(raw.replace(/\s+/g, ''))) return false;
+  return /[\p{L}\p{N}]/u.test(raw);
 }
 
 function looksLikeProblemText(value) {
@@ -455,35 +445,35 @@ function validationMessage(step, language) {
 
   const messages = {
     de: {
-      model: 'Bitte geben Sie eine echte ScanSnap-Modellbezeichnung ein, z. B. iX1600, iX1400, iX2500, iX500, S1300i oder SV600.',
+      model: 'Bitte geben Sie eine Geräte- oder Modellbezeichnung ein.',
       problem: 'Bitte geben Sie eine echte Fehlerbeschreibung ein, z. B. Fehlermeldung, Verhalten, Verbindung oder was genau nicht funktioniert. Zufällige Buchstaben wie csdfrx werden nicht akzeptiert.',
     },
     en: {
-      model: 'Please enter a real ScanSnap model, e.g. iX1600, iX1400, iX2500, iX500, S1300i or SV600.',
+      model: 'Please enter a device or model name.',
       problem: 'Please enter a real issue description, e.g. error message, behaviour, connection or what exactly is not working. Random letters like csdfrx are not accepted.',
     },
     pt: {
-      model: 'Por favor, introduz um modelo ScanSnap real, por exemplo iX1600, iX1400, iX2500, iX500, S1300i ou SV600.',
+      model: 'Por favor, introduz o nome do dispositivo ou modelo.',
       problem: 'Por favor, introduz uma descrição real do erro, por exemplo mensagem de erro, comportamento, ligação ou o que exatamente não funciona. Letras aleatórias como csdfrx não são aceites.',
     },
     es: {
-      model: 'Por favor, introduce un modelo ScanSnap real, por ejemplo iX1600, iX1400, iX2500, iX500, S1300i o SV600.',
+      model: 'Por favor, introduce el nombre del dispositivo o modelo.',
       problem: 'Por favor, introduce una descripción real del problema, por ejemplo mensaje de error, comportamiento, conexión o qué exactamente no funciona. Letras aleatorias como csdfrx no se aceptan.',
     },
     fr: {
-      model: 'Veuillez saisir un modèle ScanSnap réel, par exemple iX1600, iX1400, iX2500, iX500, S1300i ou SV600.',
+      model: 'Veuillez saisir le nom de l’appareil ou du modèle.',
       problem: 'Veuillez saisir une vraie description du problème, par exemple message d’erreur, comportement, connexion ou ce qui ne fonctionne pas exactement. Les lettres aléatoires comme csdfrx ne sont pas acceptées.',
     },
     it: {
-      model: 'Inserisci un modello ScanSnap reale, ad esempio iX1600, iX1400, iX2500, iX500, S1300i o SV600.',
+      model: 'Inserisci il nome del dispositivo o del modello.',
       problem: 'Inserisci una descrizione reale del problema, ad esempio messaggio di errore, comportamento, connessione o cosa non funziona esattamente. Lettere casuali come csdfrx non sono accettate.',
     },
     nl: {
-      model: 'Voer een echt ScanSnap-model in, bijvoorbeeld iX1600, iX1400, iX2500, iX500, S1300i of SV600.',
+      model: 'Voer een apparaat- of modelnaam in.',
       problem: 'Voer een echte probleemomschrijving in, bijvoorbeeld foutmelding, gedrag, verbinding of wat precies niet werkt. Willekeurige letters zoals csdfrx worden niet geaccepteerd.',
     },
     ja: {
-      model: '実際のScanSnapモデル名を入力してください。例：iX1600、iX1400、iX2500、iX500、S1300i、SV600。',
+      model: 'デバイス名またはモデル名を入力してください。',
       problem: '実際の問題内容を入力してください。例：エラーメッセージ、動作、接続、何が動作しないか。csdfrx のようなランダムな文字列は受け付けません。',
     },
   };
@@ -510,7 +500,7 @@ export default function Home() {
   const detected = useMemo(() => detectModelFromText(`${model} ${problem}`), [model, problem]);
   const modelValue = normalizeModelInput(model || detected.detected || '');
 
-  const modelIsValid = looksLikeScannerModel(modelValue);
+  const modelIsValid = looksLikeDeviceModel(modelValue);
   const problemIsValid = looksLikeProblemText(problem);
 
   const currentValid =
