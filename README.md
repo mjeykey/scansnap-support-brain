@@ -1,6 +1,3 @@
-# scansnap-support-brain
-ScanSnap support analysis app
+# Support Brain
 
-Live app: https://mjeykey.github.io/scansnap-support-brain/
-
-GitHub Pages deployment via GitHub Actions.
+Generic support analysis and guided troubleshooting app.
