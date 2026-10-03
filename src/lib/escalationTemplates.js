@@ -1,5 +1,5 @@
 // ============================================================
-// PFU Escalation & Request Templates
+//  Escalation & Request Templates
 // Template-driven, data-aware, missing-field-aware.
 // NO AI generation. All fields mapped from real session data.
 // ============================================================
@@ -47,9 +47,9 @@ function buildExclusions(session) {
   const all = performed.map(s => (s.title || s.stepId || '').toLowerCase()).join(' ');
   const lines = [];
   if (/direct.*usb|native.*usb|reconnect/i.test(all))         lines.push('Simple USB connectivity issue (direct connection tested)');
-  if (/usb.*stack|device.*manager|rebuild/i.test(all))         lines.push('Stale USB/ScanSnap registration as sole cause (USB stack rebuilt)');
+  if (/usb.*stack|device.*manager|rebuild/i.test(all))         lines.push('Stale USB/device registration as sole cause (USB stack rebuilt)');
   if (/sfc|dism|integrity/i.test(all))                         lines.push('Repairable Windows component corruption (SFC/DISM executed)');
-  if (/sshomeclean|cleanup|reinstall/i.test(all))              lines.push('ScanSnap Home environment corruption (full reinstall performed)');
+  if (/sshomeclean|cleanup|reinstall/i.test(all))              lines.push('support software environment corruption (full reinstall performed)');
   if (/firmware|standalone/i.test(all))                        lines.push('Firmware recoverable via standard update path');
   if (/recovery|top.*sensor|empty.*arm/i.test(all))            lines.push('Firmware recoverable via button-combo recovery');
   return lines.length > 0 ? lines.map(l => `- ${l}`).join('\n') : '[MISSING — Not enough troubleshooting history to determine exclusions]';
@@ -163,7 +163,7 @@ function buildLevel4(session) {
   return `Case Enquiry Type:      Level 4 Technical Escalation
 Country:                ${placeholder('Customer country')}
 Language:               ${placeholder('Customer language')}
-Error Code on scanner display: ${val(f.errorCode, 'Error code — check scanner display or ScanSnap Home error log')}
+Error Code on scanner display: ${val(f.errorCode, 'Error code — check scanner display or support software error log')}
 
 Error Detail:
 ${errorDetail}
@@ -174,7 +174,7 @@ ${val(f.problem, 'Full error description from customer')}
 Previous attempts included:
 ${f.troubleshootingHistory}
 
-Scan Count:             ${placeholder('Lifetime counter — check Scanner Information in ScanSnap Home')}
+Scan Count:             ${placeholder('Lifetime counter — check Scanner Information in support software')}
 Lifetime Counter:       ${placeholder('Lifetime counter')}
 Consumable Counter:     ${placeholder('Consumable counter')}
 Assist Roller Counter (if applicable): ${placeholder('Assist roller counter')}
@@ -196,7 +196,7 @@ ${f.troubleshootingHistory}
 Excluded as sole cause:
 ${f.exclusions}
 
-Reason for escalation to PFUE:
+Reason for escalation to L2:
 ${escalationReason}
 
 Links to files received from customer:
@@ -221,7 +221,7 @@ function buildAdvanceExchange(session) {
 
 DEVICE INFORMATION
 Model:                  ${val(f.model, 'Scanner model')}
-Serial Number:          ${placeholder('Serial number — check underside of scanner or ScanSnap Home')}
+Serial Number:          ${placeholder('Serial number — check underside of scanner or support software')}
 Connectivity:           ${val(f.connType, 'USB / Wi-Fi / LAN')}
 
 ISSUE SUMMARY
@@ -261,7 +261,7 @@ OS:                     ${val(f.os, 'Operating system')}
 
 MAINTENANCE REQUEST
 Reason:                 ${val(f.problem, 'Reason for preventive maintenance request')}
-Scan Count / Lifetime Counter: ${placeholder('Check Scanner Information in ScanSnap Home')}
+Scan Count / Lifetime Counter: ${placeholder('Check Scanner Information in support software')}
 Consumable Counter:     ${placeholder('Consumable counter value')}
 
 CUSTOMER DETAILS
@@ -342,7 +342,7 @@ Resolution:     ${placeholder('To be completed after order processed')}`;
 
 // ── TEMPLATE REGISTRY ───────────────────────────────────────
 
-// Dropdown templates from official PFU package — template_reference_only
+// Dropdown templates from official  package — template_reference_only
 // No L2 review escalation generated. Level 4 only after troubleshooting exhausted.
 export const ESCALATION_TEMPLATES = [
   { key: 'level4',                label: 'Level 4 Escalation',                       build: buildLevel4 },
@@ -386,7 +386,7 @@ export function buildMissingInfoEmail(missingFields, session) {
   if (lang.startsWith('de')) {
     const fallback = [
       '- Betriebssystem inklusive Version',
-      '- ScanSnap Home Version',
+      '- support software Version',
       '- Screenshot der vollständigen Fehlermeldung'
     ].join('\n');
 
@@ -403,12 +403,12 @@ Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im
 Mit freundlichen Grüßen
 
 Marina Karlovic
-PFU Support Team`;
+Support Team`;
   }
 
   const fallback = [
     '- Operating system including version',
-    '- ScanSnap Home version',
+    '- support software version',
     '- Screenshot of the full error message'
   ].join('\n');
 
@@ -425,5 +425,5 @@ Please reply directly to this email so all information remains documented in the
 Kind regards
 
 Marina Karlovic
-PFU Support Team`;
+Support Team`;
 }
