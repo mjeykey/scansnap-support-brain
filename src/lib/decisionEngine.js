@@ -56,12 +56,12 @@ export function classifyScannerState(text) {
 // ── Issue category rules ────────────────────────────────────
 
 const CATEGORY_RULES = [
-  { category: 'firmware',  keywords: ['firmware', 'recovery', 'top sensor', 'empty arm', 'standalone', 'bios', 'flash', 'logo', 'orange led'] },
-  { category: 'software',  keywords: ['sshomeclean', 'cleanup', 'reinstall', 'tb21', '-6', 'visual c', 'dism', 'sfc', 'appdata', 'pfu', 'ocr', 'startup crash', 'not starting', 'startup'] },
-  { category: 'network',   keywords: ['wifi', 'wi-fi', 'wlan', '2.4ghz', 'band steering', 'dhcp', 'subnet', 'nas', 'smb', 'onedrive', 'cloud', 'wireless'] },
-  { category: 'usb',       keywords: ['usb', 'device manager', 'usb stack', 'not detected', 'hub', 'dock'] },
+  { category: 'firmware',  keywords: ['firmware', 'bios', 'flash', 'boot', 'update failed', 'update interrupted', 'logo'] },
+  { category: 'software',  keywords: ['software', 'application', 'app', 'cleanup', 'reinstall', 'crash', 'not starting', 'startup', 'runtime', 'cache', 'ocr'] },
+  { category: 'network',   keywords: ['wifi', 'wi-fi', 'wlan', '2.4ghz', '5ghz', 'band steering', 'dhcp', 'subnet', 'nas', 'smb', 'cloud', 'wireless'] },
+  { category: 'usb',       keywords: ['usb', 'device manager', 'usb stack', 'not detected', 'hub', 'dock', 'cable'] },
   { category: 'hardware',  keywords: ['streak', 'roller', 'feed', 'paper jam', 'skew', 'noise', 'mechanical', 'glass', 'cleaning'] },
-  { category: 'profile',   keywords: ['profile', 'ScanDirect', 'Scan to Folder', 'library', 'index', 'thumbnail', 'greyed'] },
+  { category: 'profile',   keywords: ['profile', 'scan to folder', 'library', 'index', 'thumbnail', 'greyed', 'destination'] },
 ];
 
 export function classifyIssueCategory(text, kbEntry) {
@@ -74,503 +74,145 @@ export function classifyIssueCategory(text, kbEntry) {
   return best && best[1] > 0 ? best[0] : 'software';
 }
 
-// ── Firmware diagnostic state machine ──────────────────────
-
-// Model normalizer — strips spaces, dashes, lowercases
-function normalizeModel(m) {
-  return (m || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-}
+// ── Generic firmware diagnostic routing ────────────────────
 
 /**
- * Model capability registry — each model has its OWN firmware logic.
- * supportsRecovery: true only if low-level button-combo recovery is verified.
- * recoveryMethod:   describes the exact method supported.
- * standaloneUpdate: all models support standalone USB update unless noted.
+ * Generic firmware flow.
+ * No vendor, model, recovery-button or manufacturer-download knowledge is stored here.
+ * The engine only decides which information or class of action should come next.
  */
-function getModelCapability(model) {
-  const m = normalizeModel(model);
-
-  // iX1600 — Top Sensor + Empty Arm recovery supported
-  if (m.includes('ix1600')) {
-    return {
-      modelKey: 'ix1600',
-      supportsRecovery: true,
-      recoveryMethod: 'top_sensor_empty_arm',
-      recoverySteps: [
-        'Power off the iX1600 completely.',
-        'Hold the Top Sensor button AND the Empty Arm button simultaneously.',
-        'While holding both buttons, connect the USB cable directly to the computer (no hub).',
-        'Release both buttons after 3 seconds — the scanner should enter recovery/DFU mode.',
-        'Run the standalone firmware updater EXE via USB only.',
-        'Do NOT power off or disconnect during the process.',
-      ],
-      standaloneUpdate: true,
-    };
-  }
-
-  // iX1500 — Top Sensor + Empty Arm recovery supported
-  if (m.includes('ix1500')) {
-    return {
-      modelKey: 'ix1500',
-      supportsRecovery: true,
-      recoveryMethod: 'top_sensor_empty_arm',
-      recoverySteps: [
-        'Power off the iX1500 completely.',
-        'Hold the Top Sensor button AND the Empty Arm button simultaneously.',
-        'While holding both buttons, connect the USB cable directly to the computer (no hub).',
-        'Release both buttons after 3 seconds — the scanner should enter recovery/DFU mode.',
-        'Run the standalone firmware updater EXE via USB only.',
-        'Do NOT power off or disconnect during the process.',
-      ],
-      standaloneUpdate: true,
-    };
-  }
-
-  // iX500 — No button-combo recovery. USB standalone retry only.
-  if (m.includes('ix500')) {
-    return {
-      modelKey: 'ix500',
-      supportsRecovery: false,
-      recoveryMethod: 'usb_standalone_retry_only',
-      recoverySteps: [],
-      standaloneUpdate: true,
-    };
-  }
-
-  // iX100 — No verified low-level recovery
-  if (m.includes('ix100')) {
-    return {
-      modelKey: 'ix100',
-      supportsRecovery: false,
-      recoveryMethod: 'usb_standalone_retry_only',
-      recoverySteps: [],
-      standaloneUpdate: true,
-    };
-  }
-
-  // iX1300 — No verified low-level recovery
-  if (m.includes('ix1300')) {
-    return {
-      modelKey: 'ix1300',
-      supportsRecovery: false,
-      recoveryMethod: 'usb_standalone_retry_only',
-      recoverySteps: [],
-      standaloneUpdate: true,
-    };
-  }
-
-  // iX1400 — No verified low-level recovery
-  if (m.includes('ix1400')) {
-    return {
-      modelKey: 'ix1400',
-      supportsRecovery: false,
-      recoveryMethod: 'usb_standalone_retry_only',
-      recoverySteps: [],
-      standaloneUpdate: true,
-    };
-  }
-
-  // Unknown model — conservative: no recovery assumed
-  return {
-    modelKey: m || 'unknown',
-    supportsRecovery: false,
-    recoveryMethod: 'unknown',
-    recoverySteps: [],
-    standaloneUpdate: true,
-  };
-}
-
-// Keep legacy export (backward compat)
-function getModelRecoveryCapability(model) {
-  const cap = getModelCapability(model);
-  return { supportsRecovery: cap.supportsRecovery, method: cap.recoveryMethod };
-}
-
-/**
- * Full firmware diagnostic flow — real PFU support engineer logic.
- *
- * PRIORITY ORDER:
- *   1) Verify what still works / communicates
- *   2) Determine if issue is USB, software env, or truly firmware
- *   3) Attempt communication / USB rebuild before any firmware action
- *   4) Normal firmware update if scanner still boots
- *   5) Software environment cleanup if needed
- *   6) Firmware retry after clean environment
- *   7) Recovery ONLY if confirmed recovery symptoms + model supports it
- *   8) Escalation if recovery fails or model has no recovery path
- *
- * Returns:
- *   usbAvailable        – boolean | null
- *   scannerDetected     – boolean | null
- *   bootsNormally       – boolean | null
- *   recoveryRequired    – boolean
- *   likelyCause         – 'usb_comm' | 'sw_env' | 'firmware' | 'unknown'
- *   firmwareWorkflow    – 'VERIFY_STATE' | 'USB_COMM' | 'SW_ENV' | 'NORMAL' | 'RETRY_STANDALONE' | 'RECOVERY' | 'REVIEW'
- *   workflowReason      – string
- *   nextSteps           – string[]
- */
-export function runFirmwareDiagnostic(session, scannerState, completedStepTitles, failedStepTitles) {
-  const modelRaw = session.model || session.device || '';
-  const modelCap = getModelCapability(modelRaw);
-  const modelName = modelRaw ? modelRaw.toUpperCase() : 'scanner';
-  const problem  = (session.problem || '').toLowerCase();
+export function runFirmwareDiagnostic(session, deviceState, completedStepTitles = [], failedStepTitles = []) {
+  const problem = (session.problem || '').toLowerCase();
   const connType = (session.connectionType || '').toLowerCase();
+  const done = (pattern) => completedStepTitles.some(t => new RegExp(pattern, 'i').test(t));
+  const failed = (pattern) => failedStepTitles.some(t => new RegExp(pattern, 'i').test(t));
 
-  // ── What has already been tried? ───────────────────────
-  const done = (title) => completedStepTitles.some(t => new RegExp(title, 'i').test(t));
-  const failed = (title) => failedStepTitles.some(t => new RegExp(title, 'i').test(t));
+  const triedDirectConnection = done('direct usb|direct connection|usb cable|reconnect');
+  const triedSoftwareRepair = done('software|application|cleanup|reinstall');
+  const triedFirmwareUpdate = done('firmware.*update|update firmware');
+  const firmwareUpdateFailed = failed('firmware.*update|update firmware');
 
-  const triedUSBRebuild       = done('usb|device manager|usb stack|usb root');
-  const triedSWCleanup        = done('sshomeclean|cleanup|reinstall|fresh install');
-  const triedNormalUpdate     = done('firmware.*update|normal.*update|sshome.*firmware|standalone');
-  const triedRecovery         = done('recovery|top sensor|empty arm');
-  const triedUSBDirectConnect = done('direct usb|native usb|usb port|reconnect');
-  const triedWinIntegrity     = done('sfc|dism|system integrity|windows.*repair|systemreparatur|integridade');
+  const explicitlyDetected = /detected|recognized|shows up|erkannt|sichtbar/.test(problem);
+  const explicitlyNotDetected = /not detected|not recognized|nicht erkannt|undetected/.test(problem);
+  const bootProblem = ['stuck_on_logo', 'firmware_interrupted'].includes(deviceState)
+    || /boot|logo|firmware.*interrupted|update.*interrupted|update.*failed/.test(problem);
 
-  const normalUpdateFailed    = failed('firmware.*update|normal.*update|standalone');
-  const usbRebuildFailed      = failed('usb|device manager');
-  const swCleanupFailed       = failed('sshomeclean|cleanup|reinstall');
-  const recoveryFailed        = failed('recovery|top sensor|empty arm');
-
-  // ── USB & connection state ──────────────────────────────
-  const usbMentioned  = /usb/.test(problem) || connType === 'usb';
-  const wifiOnly      = /wifi|wi-fi|wlan|wireless/.test(problem) && !usbMentioned;
-  const usbBlocked    = completedStepTitles.some(t => /blocked|not available|no usb/i.test(t));
-
-  let usbAvailable = usbBlocked ? false : usbMentioned ? true : triedUSBDirectConnect ? true : null;
-
-  // ── Scanner detection + boot state ─────────────────────
-  const recoveryStateSymptoms = ['stuck_on_logo', 'firmware_interrupted', 'not_detected', 'orange_led'];
-  const bootsOkStates         = ['ready_no_movement', 'detected_cannot_scan', 'initializing'];
-
-  const customerSaidDetected    = /detected|recognized|shows up|erkannt|sichtbar/i.test(problem);
-  const customerSaidNotDetected = /not detected|not recognized|nicht erkannt|undetected/i.test(problem);
-
-  const scannerDetected = customerSaidNotDetected ? false
-    : customerSaidDetected ? true
-    : recoveryStateSymptoms.includes(scannerState) ? false
-    : bootsOkStates.includes(scannerState) ? true
+  const deviceDetected = explicitlyNotDetected ? false
+    : explicitlyDetected ? true
+    : ['ready_no_movement', 'detected_cannot_scan', 'initializing'].includes(deviceState) ? true
     : null;
 
-  const bootsNormally = ['stuck_on_logo', 'firmware_interrupted', 'orange_led'].includes(scannerState) ? false
-    : ['ready_no_movement', 'detected_cannot_scan'].includes(scannerState) ? true
+  const bootsNormally = bootProblem ? false
+    : ['ready_no_movement', 'detected_cannot_scan'].includes(deviceState) ? true
     : null;
 
-  const confirmedRecoverySymptoms = recoveryStateSymptoms.includes(scannerState)
-    || customerSaidNotDetected
-    || /firmware.*interrupted|abgebrochen|corrupt/i.test(problem);
-
-  // ── Likely root cause analysis ──────────────────────────
-  // Determine what ACTUALLY is likely wrong before choosing a path
-  const likelyUSBComm  = /usb|hub|dock|device manager|not detected|undetected|nicht erkannt/i.test(problem)
-                          && !confirmedRecoverySymptoms;
-  const likelySWEnv    = /sshome|scansnap home|startup|crash|install|cleanup|tb21|ocr|appdata/i.test(problem);
-  const likelyFirmware = confirmedRecoverySymptoms || /firmware/i.test(problem);
-
-  // Pure USB enumeration failure: scanner completely absent in Device Manager
-  const pureUsbEnumerationFailure =
-    (customerSaidNotDetected && usbMentioned) ||
-    /usb.*corrupt|device manager.*unknown|device.*appears.*disappear|usb.*enum/i.test(problem);
-
-  // Windows system integrity is the recommended path for general communication
-  // instability, post-update issues, repeated connection loss, or unclear USB/Wi-Fi
-  // problems — UNLESS there's a confirmed pure USB enumeration failure.
-  const likelyWinIntegrity =
-    !pureUsbEnumerationFailure &&
-    !confirmedRecoverySymptoms &&
-    (
-      /update.*after|after.*update|post.*(update|install)|connection.*loss|verbindung.*verlor|instabil|communication.*instab|repeated.*connection|wiederholt|communication|instability/i.test(problem) ||
-      (!likelyUSBComm && !likelySWEnv && !likelyFirmware)
-    );
-
-  const likelyCause = likelySWEnv && !likelyFirmware ? 'sw_env'
-    : pureUsbEnumerationFailure ? 'usb_comm'
-    : likelyWinIntegrity ? 'win_integrity'
-    : likelyFirmware ? 'firmware'
-    : likelyUSBComm ? 'usb_comm'
-    : 'unknown';
-
-  // ════════════════════════════════════════════════════════
-  // PHASE 1 — Verify scanner state first (nothing known yet)
-  // ════════════════════════════════════════════════════════
-  if (scannerDetected === null && bootsNormally === null && !confirmedRecoverySymptoms) {
+  if (deviceDetected === null && bootsNormally === null) {
     return {
-      usbAvailable,
+      usbAvailable: connType === 'usb' ? true : null,
       scannerDetected: null,
       bootsNormally: null,
       recoveryRequired: false,
       likelyCause: 'unknown',
       firmwareWorkflow: 'VERIFY_STATE',
-      workflowReason: 'Scanner state not yet confirmed — must determine what still works before any action',
+      workflowReason: 'Device state is not yet clear enough to choose a safe firmware path',
       nextSteps: [
-        `Power on the ${modelName}. What LEDs or display text do you see?`,
-        'Connect the scanner via direct USB (no hub, no dock, no extension). Does it appear in Device Manager?',
-        'Open ScanSnap Home — does it detect the scanner?',
-        'Describe the exact symptom: stuck on logo? No power? Orange LED only? Not detected in Windows?',
+        'Confirm whether the device powers on normally.',
+        'Confirm whether the operating system detects the device.',
+        'Record the exact firmware/update symptom or error message.',
+        'Confirm the current connection type and whether a direct connection is available.',
       ],
     };
   }
 
-  // ════════════════════════════════════════════════════════
-  // PHASE 2 — Scanner boots normally: check USB comms first
-  // BEFORE jumping to firmware actions
-  // ════════════════════════════════════════════════════════
-  if ((scannerDetected === true || bootsNormally === true)) {
-    // 2a: Basic connection check — direct USB test first (always)
-    if (!triedUSBDirectConnect && usbAvailable !== false) {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: true,
-        bootsNormally: true,
-        recoveryRequired: false,
-        likelyCause: likelyCause,
-        firmwareWorkflow: 'USB_COMM',
-        workflowReason: 'Verify basic connection quality first: direct USB, no hub/dock, different cable/port',
-        nextSteps: [
-          `Connect the ${modelName} directly to a native USB port on the computer (no hub, dock, or extension cable).`,
-          'Try a different USB cable if available.',
-          'Test on a different USB port (preferably USB 2.0 on the rear of the computer).',
-          'Open Device Manager — confirm the scanner appears without errors or unknown device warnings.',
-          'Restart the scanner and reconnect — then check ScanSnap Home detection.',
-        ],
-      };
-    }
-
-    // 2b: Windows system integrity repair — BEFORE USB stack rebuild and BEFORE firmware actions
-    // Skip only if the issue is clearly a pure USB enumeration failure
-    if (!triedWinIntegrity && !pureUsbEnumerationFailure && likelyCause !== 'sw_env') {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: true,
-        bootsNormally: true,
-        recoveryRequired: false,
-        likelyCause: 'win_integrity',
-        firmwareWorkflow: 'WIN_INTEGRITY',
-        workflowReason: 'General communication instability detected — Windows system integrity must be verified and repaired BEFORE USB stack cleanup or firmware actions',
-        nextSteps: [
-          'Open Command Prompt as Administrator.',
-          'Step 1: Run sfc /scannow — wait for completion.',
-          'Step 2: Restart the computer.',
-          'Step 3: Run DISM /Online /Cleanup-Image /RestoreHealth — wait for completion (10–20 min).',
-          'Step 4: Restart the computer.',
-          'Step 5: Run sfc /scannow again.',
-          'Step 6: Repeat sfc /scannow until you see: "Windows Resource Protection did not find any integrity violations."',
-          `After completion: retest ScanSnap Home and ${modelName} connection before proceeding further.`,
-        ],
-      };
-    }
-
-    // 2c: ScanSnap Home / software environment — if SW env is likely cause
-    if (!triedSWCleanup && (likelySWEnv || (triedUSBDirectConnect && !triedNormalUpdate))) {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: true,
-        bootsNormally: true,
-        recoveryRequired: false,
-        likelyCause: likelyCause,
-        firmwareWorkflow: 'SW_ENV',
-        workflowReason: 'Scanner communicates but ScanSnap Home / software environment may be corrupted',
-        nextSteps: [
-          'Run SSHomeClean.exe to fully remove ScanSnap Home and all local configuration.',
-          'Restart the computer after cleanup.',
-          'Reinstall ScanSnap Home as Administrator from the official PFU/Fujitsu download page.',
-          'Reconnect the scanner via direct USB after fresh installation.',
-          'Check if firmware update is now offered in ScanSnap Home → Scanner Information.',
-        ],
-      };
-    }
-
-    // 2d: Normal firmware update — scanner detected, comms/SW environment verified
-    if (!triedNormalUpdate) {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: true,
-        bootsNormally: true,
-        recoveryRequired: false,
-        likelyCause: 'firmware',
-        firmwareWorkflow: 'NORMAL',
-        workflowReason: `${modelName} is detected and booting — proceed with normal firmware update via direct USB`,
-        nextSteps: [
-          `Ensure ${modelName} is connected via direct USB (no hub, no dock).`,
-          'Open ScanSnap Home → Settings → Scanner Information → check for firmware update.',
-          'If update is shown: apply it via USB only (do NOT use Wi-Fi for firmware updates).',
-          `If no update shown in ScanSnap Home: download the standalone firmware package for ${modelName} from the PFU website and run it directly.`,
-          'Keep the scanner powered and connected throughout the process.',
-        ],
-      };
-    }
-
-    // 2e: Normal update was tried — if USB rebuild not yet done, do it now
-    if (triedNormalUpdate && !triedUSBRebuild && !normalUpdateFailed) {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: true,
-        bootsNormally: true,
-        recoveryRequired: false,
-        likelyCause: 'usb_comm',
-        firmwareWorkflow: 'USB_COMM',
-        workflowReason: 'Normal update attempted — rebuild USB stack to ensure clean communication before retry',
-        nextSteps: [
-          'Open Device Manager → View → Show hidden devices.',
-          'Uninstall all ScanSnap and scanner-related entries (including greyed-out entries).',
-          'Disconnect the scanner and restart the computer.',
-          'Reconnect via direct USB on a native port after restart.',
-          'Attempt the firmware update again via ScanSnap Home or standalone updater.',
-        ],
-      };
-    }
-
-    // 2f: Normal update tried and failed, USB stack rebuilt — retry standalone
-    if (triedNormalUpdate && (triedUSBRebuild || triedUSBDirectConnect) && !triedSWCleanup && normalUpdateFailed) {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: true,
-        bootsNormally: true,
-        recoveryRequired: false,
-        likelyCause: 'sw_env',
-        firmwareWorkflow: 'SW_ENV',
-        workflowReason: 'Normal update and USB rebuild done — clean software environment before firmware retry',
-        nextSteps: [
-          'Run SSHomeClean.exe — fully removes ScanSnap Home and all local data.',
-          'Restart computer after cleanup.',
-          'Reinstall ScanSnap Home as Administrator from the official PFU download page.',
-          `After reinstall, reconnect ${modelName} via direct USB and retry the firmware update.`,
-        ],
-      };
-    }
+  if (!triedDirectConnection && connType === 'usb') {
+    return {
+      usbAvailable: true,
+      scannerDetected: deviceDetected,
+      bootsNormally,
+      recoveryRequired: false,
+      likelyCause: 'usb_comm',
+      firmwareWorkflow: 'USB_COMM',
+      workflowReason: 'Verify the basic communication path before changing firmware',
+      nextSteps: [
+        'Connect the device directly without a hub or dock.',
+        'Try another port and cable if available.',
+        'Confirm whether the operating system detects the device without warnings.',
+      ],
+    };
   }
 
-  // ════════════════════════════════════════════════════════
-  // PHASE 3 — Recovery symptoms present
-  // Only reach here if scanner is NOT booting normally
-  // AND confirmed recovery symptoms exist
-  // ════════════════════════════════════════════════════════
-  if (confirmedRecoverySymptoms) {
-
-    // 3a: USB not yet verified — do this first even with recovery symptoms
-    if (usbAvailable === null && !wifiOnly) {
-      return {
-        usbAvailable: null,
-        scannerDetected: false,
-        bootsNormally: false,
-        recoveryRequired: false,
-        likelyCause: 'firmware',
-        firmwareWorkflow: 'VERIFY_STATE',
-        workflowReason: 'Recovery symptoms detected but USB availability not yet confirmed',
-        nextSteps: [
-          'Can the customer connect the scanner directly via USB to the computer?',
-          'If USB is available: connect via native port (no hub, dock, or extension cable).',
-          'Does Windows/Mac detect the scanner at all — even as unknown device in Device Manager?',
-          'If USB is not available: document as blocked and continue remote diagnostics.',
-        ],
-      };
-    }
-
-    // 3b: Try standalone USB update first — before any button-combo recovery
-    if (!triedNormalUpdate && usbAvailable !== false) {
-      return {
-        usbAvailable: usbAvailable !== false,
-        scannerDetected: false,
-        bootsNormally: false,
-        recoveryRequired: false,
-        likelyCause: 'firmware',
-        firmwareWorkflow: 'RETRY_STANDALONE',
-        workflowReason: `Recovery symptoms present but standalone USB update not yet attempted — try this BEFORE recovery`,
-        nextSteps: [
-          `Connect the ${modelName} via direct USB (no hub, no dock).`,
-          `Download the standalone firmware package specifically for ${modelName} from the PFU/Fujitsu website.`,
-          'Run the standalone firmware updater EXE — do NOT use ScanSnap Home at this stage.',
-          'If Windows detects the scanner (even briefly): let the updater run to completion.',
-          'Do NOT power off or disconnect during the update.',
-        ],
-      };
-    }
-
-    // 3c: Standalone tried — check model-specific recovery availability
-    if (triedNormalUpdate || normalUpdateFailed) {
-
-      // Model supports recovery (iX1500 / iX1600)
-      if (modelCap.supportsRecovery && !triedRecovery) {
-        return {
-          usbAvailable: usbAvailable !== false,
-          scannerDetected: false,
-          bootsNormally: false,
-          recoveryRequired: true,
-          likelyCause: 'firmware',
-          firmwareWorkflow: 'RECOVERY',
-          workflowReason: `Standalone update attempted + confirmed recovery symptoms — ${modelName} supports ${modelCap.recoveryMethod} recovery`,
-          nextSteps: modelCap.recoverySteps,
-        };
-      }
-
-      // Model does NOT support button-combo recovery (iX500, iX100, iX1300, iX1400)
-      if (!modelCap.supportsRecovery && !triedRecovery) {
-        return {
-          usbAvailable: usbAvailable !== false,
-          scannerDetected: false,
-          bootsNormally: false,
-          recoveryRequired: false,
-          likelyCause: 'firmware',
-          firmwareWorkflow: 'RETRY_STANDALONE',
-          workflowReason: `${modelName} does NOT support button-combo low-level recovery — USB standalone retry is the only firmware option`,
-          nextSteps: [
-            `Connect the ${modelName} via direct USB only (no hub, no dock).`,
-            `Download the standalone firmware package specifically for ${modelName} from the PFU/Fujitsu website (verify model match).`,
-            'Run the standalone updater — attempt during any brief detection window.',
-            'If scanner is completely undetected and standalone fails: prepare for engineering review.',
-          ],
-        };
-      }
-
-      // Recovery was attempted but failed
-      if (triedRecovery && recoveryFailed) {
-        return {
-          usbAvailable: usbAvailable !== false,
-          scannerDetected: false,
-          bootsNormally: false,
-          recoveryRequired: true,
-          likelyCause: 'firmware',
-          firmwareWorkflow: 'REVIEW',
-          workflowReason: 'All firmware paths exhausted including recovery — hardware-level issue likely, prepare for engineering review',
-          nextSteps: [
-            'Document all steps performed and their outcomes.',
-            'Collect photos or video of the current scanner LED/display state.',
-            'Record the exact firmware version attempted and the standalone updater version used.',
-            'Prepare a detailed internal review — this may require hardware service or engineering escalation.',
-            'Inform the customer that the issue has exceeded standard troubleshooting scope.',
-          ],
-        };
-      }
-    }
+  if (!triedSoftwareRepair && /software|application|app|crash|startup|install|cache/.test(problem)) {
+    return {
+      usbAvailable: connType === 'usb' ? true : null,
+      scannerDetected: deviceDetected,
+      bootsNormally,
+      recoveryRequired: false,
+      likelyCause: 'sw_env',
+      firmwareWorkflow: 'SW_ENV',
+      workflowReason: 'The symptoms may be caused by the local software environment rather than firmware',
+      nextSteps: [
+        'Check the installed application/software version.',
+        'Repair or clean-reinstall the relevant application using the vendor-approved procedure.',
+        'Restart the system and retest the device before attempting firmware again.',
+      ],
+    };
   }
 
-  // ════════════════════════════════════════════════════════
-  // PHASE 4 — Default: scanner still active, continue normally
-  // ════════════════════════════════════════════════════════
+  if (!triedFirmwareUpdate) {
+    return {
+      usbAvailable: connType === 'usb' ? true : null,
+      scannerDetected: deviceDetected,
+      bootsNormally,
+      recoveryRequired: false,
+      likelyCause: 'firmware',
+      firmwareWorkflow: 'NORMAL',
+      workflowReason: 'Firmware is the active path, but no vendor-specific update method is assumed',
+      nextSteps: [
+        'Verify the exact device model and current firmware version.',
+        'Use the manufacturer-approved firmware procedure for that exact model.',
+        'Keep the device powered and connected for the full update.',
+        'Document the result before continuing.',
+      ],
+    };
+  }
+
+  if (firmwareUpdateFailed || bootProblem) {
+    return {
+      usbAvailable: connType === 'usb' ? true : null,
+      scannerDetected: deviceDetected,
+      bootsNormally,
+      recoveryRequired: false,
+      likelyCause: 'firmware',
+      firmwareWorkflow: 'REVIEW',
+      workflowReason: 'The standard firmware path failed or the device no longer boots normally; vendor-specific recovery must not be guessed',
+      nextSteps: [
+        'Collect the exact model, firmware version, update package/version and error message.',
+        'Collect the current display/LED state and detection status.',
+        'Escalate or consult the manufacturer-specific recovery documentation for this exact model.',
+      ],
+    };
+  }
+
   return {
-    usbAvailable: usbAvailable !== false,
-    scannerDetected: scannerDetected,
-    bootsNormally: bootsNormally,
+    usbAvailable: connType === 'usb' ? true : null,
+    scannerDetected: deviceDetected,
+    bootsNormally,
     recoveryRequired: false,
-    likelyCause: likelyCause,
-    firmwareWorkflow: 'NORMAL',
-    workflowReason: 'Scanner appears functional — proceed with standard firmware update path',
+    likelyCause: 'firmware',
+    firmwareWorkflow: 'REVIEW',
+    workflowReason: 'Generic firmware troubleshooting is exhausted',
     nextSteps: [
-      `Connect the ${modelName} via direct USB (no hub, no dock, no extension cable).`,
-      'Open ScanSnap Home → Settings → Scanner Information → check for firmware update.',
-      'Apply via USB if shown, or download the standalone firmware package from the PFU website.',
-      'Keep the scanner powered and connected throughout the update.',
+      'Document all completed steps and outcomes.',
+      'Continue with vendor/model-specific documentation or escalation.',
     ],
   };
 }
 
-// Keep legacy export for backward compatibility
-export function determineFirmwarePath(model, scannerState, completedStepTitles) {
-  const diag = runFirmwareDiagnostic({ model }, scannerState, completedStepTitles, []);
+// Backward-compatible generic helper.
+export function determineFirmwarePath(model, deviceState, completedStepTitles) {
+  const diag = runFirmwareDiagnostic({ model }, deviceState, completedStepTitles, []);
   return {
-    path: diag.firmwareWorkflow === 'RECOVERY' ? 'recovery'
-        : diag.firmwareWorkflow === 'REVIEW' ? 'review'
-        : 'normal_update',
+    path: diag.firmwareWorkflow === 'REVIEW' ? 'review' : 'normal_update',
     instruction: diag.nextSteps[0] || '',
     safe: diag.firmwareWorkflow !== 'REVIEW',
   };
@@ -584,12 +226,12 @@ function stepAlreadyDone(stepText, completedStepTitles, completedStepIds = []) {
 
   const t = stepText.toLowerCase();
   const DEDUP_KEYS = [
-    ['cleanup', 'sshomeclean'],
+    ['cleanup', 'reinstall', 'software'],
     ['reinstall', 'reinstalled'],
     ['usb', 'usb stack', 'device manager'],
-    ['firmware recovery'],
+    ['firmware', 'update'],
     ['wi-fi setup', 'wireless setup', 'wlan setup'],
-    ['ocr', 'ocr rebuild'],
+    ['ocr', 'text recognition'],
     ['profile', 'recreat'],
   ];
   for (const keys of DEDUP_KEYS) {
@@ -810,8 +452,8 @@ export function buildStatusAwareEmailText(kbEmailText, kbEntry, caseStatus, lang
   const replyNote   = typeof replyNoteFn === 'function' ? replyNoteFn(caseNumber) : replyNoteFn;
 
   // Build closing with supporter name
-  const sigName = supporterName || 'ScanSnap Support Team';
-  const closing = `${replyNote}\n\n${sigName}\nScanSnap Support`;
+  const sigName = supporterName || 'Support Team';
+  const closing = `${replyNote}\n\n${sigName}\nSupport`;
 
   // Case number line
   const caseRef = caseNumber ? `[${caseNumber}]` : '';
@@ -902,10 +544,10 @@ export function buildFirmwareEmail(fwDiag, lang, supporterName, caseNumber, loca
   const l = lang in GREETINGS ? lang : 'en';
   const workflow = fwDiag.firmwareWorkflow in WORKFLOW_INTROS ? fwDiag.firmwareWorkflow : 'VERIFY_USB';
 
-  const sigName      = supporterName || 'ScanSnap Support Team';
+  const sigName      = supporterName || 'Support Team';
   const replyNoteFn  = REPLY_NOTE[l] || REPLY_NOTE['en'];
   const replyNote    = typeof replyNoteFn === 'function' ? replyNoteFn(caseNumber) : replyNoteFn;
-  const closing      = `${replyNote}\n\n${sigName}\nScanSnap Support`;
+  const closing      = `${replyNote}\n\n${sigName}\nSupport`;
   const caseRef   = caseNumber ? `[${caseNumber}]` : '';
 
   const greeting  = caseRef ? `${GREETINGS[l]}  ${caseRef}` : GREETINGS[l];
@@ -922,13 +564,12 @@ export function buildFirmwareEmail(fwDiag, lang, supporterName, caseNumber, loca
 const NEXT_ACTION_TEMPLATES = {
   request_info:     'Request missing information before proceeding: {info}',
   request_video:    'Request screenshot or short video of current scanner state from customer.',
-  firmware_recovery:'Execute firmware recovery workflow. Verify model has confirmed recovery path.',
   firmware_normal:  'Run normal firmware update via direct USB.',
-  software_cleanup: 'Perform ScanSnap Home cleanup (SSHomeClean.exe) and reinstall as administrator.',
+  software_cleanup: 'Repair or clean-reinstall the relevant application using the approved procedure.',
   win_integrity:    'Run Windows system integrity repair (sfc /scannow → restart → DISM → restart → sfc repeat). Do NOT touch USB stack first.',
-  usb_stack:        'Remove stale USB/ScanSnap entries from Device Manager and rebuild USB stack.',
+  usb_stack:        'Inspect USB/device registrations in Device Manager and rebuild the USB path if appropriate.',
   wifi_setup:       'Reset wireless settings and re-run Wi-Fi pairing. Check 2.4GHz / band steering.',
-  cloud_reauth:     'Re-authenticate ScanSnap Cloud account and recreate cloud profiles.',
+  cloud_reauth:     'Re-authenticate the cloud account and recreate the affected cloud profile if applicable.',
   hardware_clean:   'Clean internal glass and roller area carefully.',
   profile_recreate: 'Remove corrupted profile configuration and recreate profiles manually.',
   request_remote:   'Suggest remote session to investigate live system state.',
@@ -966,9 +607,6 @@ export function selectNextAction(session, kbEntry, category, scannerState, missi
     }
     if (fwDiag.firmwareWorkflow === 'RETRY_STANDALONE') {
       return { action: 'firmware_normal', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'RECOVERY') {
-      return { action: 'firmware_recovery', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
     }
     if (fwDiag.firmwareWorkflow === 'REVIEW') {
       return { action: 'review', reason: fwDiag.workflowReason, fwDiag };
@@ -1024,20 +662,18 @@ export function generateNextDynamicStep(session, kbEntry) {
   // ── Ordered progression chains — stepId + keyword fallback for KB step dedup ──
 
   const firmwareChain = [
-    { stepId: 'verifyScannerState',       keyword: 'verify|state|power|led|display' },
-    { stepId: 'directUsbConnectionTest',  keyword: 'direct usb|native usb|usb cable|reconnect' },
-    { stepId: 'windowsSystemRepair',      keyword: 'sfc|dism|system integrity|systemreparatur|integridade|windows repair' },
-    { stepId: 'ssHomeCleanup',            keyword: 'sshomeclean|cleanup|reinstall|software environment' },
-    { stepId: 'firmwareStandaloneUpdate', keyword: 'firmware update|standalone|normal update' },
-    { stepId: 'rebuildUsbStack',          keyword: 'device manager|usb stack|usb root|stale' },
-    { stepId: 'evaluateFirmwareRecovery', keyword: 'recovery|top sensor|empty arm' },
+    { stepId: 'verifyDeviceState',         keyword: 'verify|state|power|led|display' },
+    { stepId: 'directUsbConnectionTest',   keyword: 'direct usb|direct connection|usb cable|reconnect' },
+    { stepId: 'checkSoftwareEnvironment',  keyword: 'software|application|cleanup|reinstall' },
+    { stepId: 'standardFirmwareUpdate',    keyword: 'firmware update|normal update' },
+    { stepId: 'prepareVendorReview',       keyword: 'vendor|manufacturer|review|escalat' },
   ];
 
   const softwareChain = [
-    { stepId: 'ssHomeCleanup',           keyword: 'sshomeclean|cleanup|reinstall|software' },
-    { stepId: 'windowsSystemRepair',     keyword: 'sfc|dism|system integrity|systemreparatur|integridade|windows repair' },
-    { stepId: 'rebuildUsbStack',         keyword: 'device manager|usb|driver' },
-    { stepId: 'recreateScannerProfiles', keyword: 'profile|scan to folder|scandirect|library' },
+    { stepId: 'checkSoftwareEnvironment', keyword: 'software|application|cleanup|reinstall' },
+    { stepId: 'checkSystemIntegrity',     keyword: 'sfc|dism|system integrity|systemreparatur|integridade|windows repair' },
+    { stepId: 'rebuildUsbStack',          keyword: 'device manager|usb|driver' },
+    { stepId: 'recreateProfiles',         keyword: 'profile|scan to folder|library|destination' },
   ];
 
   const usbChain = [
@@ -1045,7 +681,7 @@ export function generateNextDynamicStep(session, kbEntry) {
     { stepId: 'windowsSystemRepair',       keyword: 'sfc|dism|system integrity|systemreparatur|integridade|windows repair' },
     { stepId: 'rebuildUsbStack',           keyword: 'device manager|usb stack|stale|registration' },
     { stepId: 'disableUsbPowerManagement', keyword: 'power management|usb power|selective suspend' },
-    { stepId: 'ssHomeCleanup',             keyword: 'sshomeclean|cleanup|reinstall' },
+    { stepId: 'checkSoftwareEnvironment',  keyword: 'software|application|cleanup|reinstall' },
   ];
 
   const networkChain = [
@@ -1144,9 +780,16 @@ export function runDecisionEngine(session, kbEntry, language) {
 
   // Templates — for firmware unresolved cases use diagnostic email; otherwise KB template
   const emailData    = loadLocalEmail(kbEntry, activeLang);
-  const emailText    = (category === 'firmware' && !caseStatus.isResolved && fwDiag)
-    ? buildFirmwareEmail(fwDiag, activeLang, supporterName, caseNumber)
-    : buildStatusAwareEmailText(emailData.text, kbEntry, caseStatus, activeLang, supporterName, caseNumber, localizedKB.causes, localizedKB.solution_steps);
+  const emailText    = buildStatusAwareEmailText(
+    emailData.text,
+    kbEntry,
+    caseStatus,
+    activeLang,
+    supporterName,
+    caseNumber,
+    localizedKB.causes,
+    localizedKB.solution_steps
+  );
   const summaryText  = getCaseSummary(kbEntry);
   const escText      = getEscalationText(kbEntry);
 
@@ -1240,8 +883,6 @@ export function runDecisionEngine(session, kbEntry, language) {
       matchedKBModels:      kbEntry?.models?.join(', ') || '(none)',
       modelMatchConf:       kbEntry?.models?.some(m => model && m.toLowerCase().replace(/[^a-z0-9]/g,'').includes(model.toLowerCase().replace(/[^a-z0-9]/g,''))) ? 'EXACT' : kbEntry ? 'GENERIC/FALLBACK' : 'NO MATCH',
       crossModelFallback:   kbEntry?.models?.length > 0 && model && !kbEntry.models.some(m => m.toLowerCase().replace(/[^a-z0-9]/g,'').includes(model.toLowerCase().replace(/[^a-z0-9]/g,''))) ? 'YES' : 'NO',
-      modelRecoveryCapable: getModelRecoveryCapability(model).supportsRecovery ? 'YES' : 'NO',
-      modelRecoveryMethod:  getModelRecoveryCapability(model).method,
       // Classification
       model,
       connType,
@@ -1279,17 +920,17 @@ export function runDecisionEngine(session, kbEntry, language) {
       // Issue type classification for debug panel
       issueType: fwDiag?.likelyCause === 'win_integrity' ? 'Windows integrity / system instability'
         : fwDiag?.likelyCause === 'usb_comm' ? 'USB enumeration failure'
-        : fwDiag?.likelyCause === 'sw_env' ? 'ScanSnap Home / software environment'
+        : fwDiag?.likelyCause === 'sw_env' ? 'Software environment'
         : fwDiag?.likelyCause === 'firmware' ? 'Firmware (recovery state)'
         : category === 'network' ? 'Wi-Fi / network'
         : category,
       sfcDismRecommended: fwDiag?.firmwareWorkflow === 'WIN_INTEGRITY' ? 'YES — communication instability detected, integrity repair precedes USB cleanup' : 'NO',
       usbStackDelayed: fwDiag?.firmwareWorkflow === 'WIN_INTEGRITY' ? 'YES — delayed until after integrity repair' : fwDiag?.likelyCause === 'usb_comm' ? 'NO — pure USB enumeration failure, USB cleanup appropriate' : 'N/A',
       troubleshootingPriority: fwDiag?.firmwareWorkflow === 'WIN_INTEGRITY'
-        ? '1.Basic check → 2.SSH/FW state → 3.Windows integrity (SFC/DISM) → 4.Retest → 5.USB cleanup if needed → 6.SSHome reinstall'
+        ? '1.Basic check → 2.SSH/FW state → 3.Windows integrity (SFC/DISM) → 4.Retest → 5.USB cleanup if needed → 6.software reinstall'
         : fwDiag?.firmwareWorkflow === 'USB_COMM'
         ? '1.Basic check → 2.USB stack rebuild (pure enum failure) → 3.Retest'
-        : '1.Basic check → 2.ScanSnap Home state → 3.Next step',
+        : '1.Basic check → 2.software state → 3.Next step',
     },
   };
 }
