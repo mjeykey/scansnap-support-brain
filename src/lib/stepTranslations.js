@@ -244,51 +244,36 @@ const stepTranslations = {
       difficulty: 'advanced',
     },
   },
-
-  evaluateFirmwareRecovery: {
-    de: {
-      title: 'Firmware-Recovery bewerten',
-      body: 'Das Standalone-Update ist fehlgeschlagen oder der Scanner wird nicht erkannt. Prüfen Sie, ob Ihr Modell die Button-Kombi-Recovery unterstützt (iX1500/iX1600: Top Sensor + Empty Arm). Wenn ja, führen Sie den Recovery-Vorgang gemäß Modell-spezifischer Anleitung durch.',
-      difficulty: 'advanced',
-    },
     en: {
       title: 'Evaluate Firmware Recovery',
-      body: 'The standalone update has failed or the scanner is not detected. Check if your model supports button-combo recovery (iX1500/iX1600: Top Sensor + Empty Arm). If yes, perform the recovery procedure per model-specific instructions.',
       difficulty: 'advanced',
     },
     fr: {
       title: 'Évaluer la récupération firmware',
-      body: 'La mise à jour autonome a échoué ou le scanner n\'est pas détecté. Vérifiez si votre modèle prend en charge la récupération par combinaison de touches (iX1500/iX1600 : Top Sensor + Empty Arm). Si oui, suivez la procédure de récupération spécifique au modèle.',
       difficulty: 'advanced',
     },
     es: {
       title: 'Evaluar recuperación de firmware',
-      body: 'La actualización independiente ha fallado o el escáner no es detectado. Compruebe si su modelo admite la recuperación por combinación de botones (iX1500/iX1600: Top Sensor + Empty Arm). Si es así, siga el procedimiento de recuperación específico del modelo.',
       difficulty: 'advanced',
     },
     pt: {
       title: 'Avaliar recuperação de firmware',
-      body: 'A atualização autónoma falhou ou o scanner não é detetado. Verifique se o seu modelo suporta recuperação por combinação de botões (iX1500/iX1600: Top Sensor + Empty Arm). Se sim, execute o procedimento de recuperação de acordo com as instruções específicas do modelo.',
       difficulty: 'advanced',
     },
     it: {
       title: 'Valutare il ripristino del firmware',
-      body: 'L\'aggiornamento standalone è fallito o lo scanner non viene rilevato. Verificare se il modello supporta il ripristino tramite combinazione di tasti (iX1500/iX1600: Top Sensor + Empty Arm). In caso affermativo, eseguire la procedura di ripristino secondo le istruzioni specifiche del modello.',
       difficulty: 'advanced',
     },
     nl: {
       title: 'Firmware-herstel evalueren',
-      body: 'De standalone update is mislukt of de scanner wordt niet gedetecteerd. Controleer of uw model knopcombi-herstel ondersteunt (iX1500/iX1600: Top Sensor + Empty Arm). Zo ja, voer de herstelprocedure uit volgens modelspecifieke instructies.',
       difficulty: 'advanced',
     },
     ja: {
       title: 'ファームウェアリカバリの評価',
-      body: 'スタンドアロンアップデートが失敗したか、スキャナーが検出されません。お使いのモデルがボタンコンボリカバリに対応しているか確認してください（iX1500/iX1600：Top Sensor + Empty Arm）。対応している場合は、モデル固有の手順に従ってリカバリ手順を実行してください。',
       difficulty: 'advanced',
     },
     zh: {
       title: '评估固件恢复',
-      body: '独立更新失败或扫描仪未被检测到。检查您的型号是否支持按键组合恢复（iX1500/iX1600：Top Sensor + Empty Arm）。如果支持，请按照特定型号的说明执行恢复程序。',
       difficulty: 'advanced',
     },
   },
