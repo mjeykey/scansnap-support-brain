@@ -143,7 +143,7 @@ Damit wir die nächsten Schritte korrekt einleiten können, benötigen wir bitte
 Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen zentral im bestehenden Vorgang dokumentiert bleiben.
 
 Mit freundlichen Grüßen
-PFU Support Team`,
+Support Team`,
 
     en: `Dear Customer,
 
@@ -161,7 +161,7 @@ To proceed with the next steps, we require the following additional information:
 Please reply directly to this email so all information remains documented in the existing case.
 
 Kind regards
-PFU Support Team`,
+Support Team`,
 
     pt: `Bom dia,
 
@@ -179,7 +179,7 @@ Para podermos iniciar os próximos passos corretamente, precisamos ainda das seg
 Por favor, responda diretamente a este e-mail para que todas as informações permaneçam documentadas no caso existente.
 
 Atenciosamente
-PFU Support Team`,
+Support Team`,
 
     es: `Buenos días,
 
@@ -197,7 +197,7 @@ Para poder iniciar los siguientes pasos correctamente, necesitamos todavía la s
 Por favor, responda directamente a este e-mail para que toda la información quede documentada en el caso existente.
 
 Atentamente
-PFU Support Team`,
+Support Team`,
 
     fr: `Bonjour,
 
@@ -215,7 +215,7 @@ Afin de pouvoir lancer correctement les prochaines étapes, nous avons encore be
 Veuillez répondre directement à cet e-mail afin que toutes les informations restent documentées dans le dossier existant.
 
 Cordialement
-PFU Support Team`,
+Support Team`,
 
     it: `Buongiorno,
 
@@ -233,7 +233,7 @@ Per procedere correttamente con i prossimi passaggi, abbiamo ancora bisogno dell
 La preghiamo di rispondere direttamente a questa e-mail, in modo che tutte le informazioni restino documentate nel caso esistente.
 
 Cordiali saluti
-PFU Support Team`,
+Support Team`,
 
     nl: `Goedendag,
 
@@ -251,7 +251,7 @@ Om de volgende stappen correct te kunnen starten, hebben wij nog de volgende inf
 Reageer alstublieft rechtstreeks op deze e-mail, zodat alle informatie in de bestaande case gedocumenteerd blijft.
 
 Met vriendelijke groet
-PFU Support Team`,
+Support Team`,
 
     ja: `お世話になっております。
 
@@ -269,7 +269,7 @@ PFU Support Team`,
 情報が既存のケースに記録されるよう、このメールに直接ご返信ください。
 
 よろしくお願いいたします。
-PFU Support Team`,
+Support Team`,
   };
 
   return templates[key] || templates.en;
@@ -314,7 +314,7 @@ function sourceOpening(session, lang = 'de') {
 
   if (isPt) {
     const map = {
-      phone: 'Obrigado pelo seu telefonema para o PFU Support hoje.',
+      phone: 'Obrigado pelo seu telefonema para o Support hoje.',
       email: 'Obrigado pelo seu e-mail.',
       live_chat: 'Obrigado pelo contacto através do Live Chat.',
       webportal: 'Obrigado pelo seu pedido através do Webportal.',
@@ -325,7 +325,7 @@ function sourceOpening(session, lang = 'de') {
 
   if (isEn) {
     const map = {
-      phone: 'Thank you for calling PFU Support today.',
+      phone: 'Thank you for calling Support today.',
       email: 'Thank you for your email.',
       live_chat: 'Thank you for contacting us via Live Chat.',
       webportal: 'Thank you for your request via the web portal.',
@@ -335,7 +335,7 @@ function sourceOpening(session, lang = 'de') {
   }
 
   const map = {
-    phone: 'Vielen Dank für Ihren Anruf beim PFU Support heute.',
+    phone: 'Vielen Dank für Ihren Anruf beim Support heute.',
     email: 'vielen Dank für Ihre E-Mail.',
     live_chat: 'vielen Dank für den Kontakt über den Live Chat.',
     webportal: 'vielen Dank für Ihre Anfrage über das Webportal.',
@@ -415,14 +415,14 @@ const EMAIL_PHRASES = {
     ja: 'スキャナーまたは不明なデバイスが表示されているWindowsデバイスマネージャーのスクリーンショットまたは写真',
   },
   sshomeVersion: {
-    de: 'Installierte ScanSnap Home Version',
-    en: 'Installed ScanSnap Home version',
-    pt: 'Versão instalada do ScanSnap Home',
-    es: 'Versión instalada de ScanSnap Home',
-    fr: 'Version installée de ScanSnap Home',
-    it: 'Versione installata di ScanSnap Home',
-    nl: 'Geïnstalleerde ScanSnap Home-versie',
-    ja: 'インストールされているScanSnap Homeバージョン',
+    de: 'Installierte support software Version',
+    en: 'Installed support software version',
+    pt: 'Versão instalada do support software',
+    es: 'Versión instalada de support software',
+    fr: 'Version installée de support software',
+    it: 'Versione installata di support software',
+    nl: 'Geïnstalleerde support software-versie',
+    ja: 'インストールされているsupport softwareバージョン',
   },
   firmwareVersion: {
     de: 'Installierte Firmware-Version des Scanners',
@@ -520,17 +520,17 @@ function EmailBuilder({ session, brain, lang }) {
       },
     },
     {
-      key: 'scansnap_home_screen',
-      label: { de: 'ScanSnap Home Fenster', en: 'ScanSnap Home screen', pt: 'Janela do ScanSnap Home', es: 'Ventana de ScanSnap Home', fr: 'Fenêtre ScanSnap Home', it: 'Finestra ScanSnap Home', nl: 'ScanSnap Home-venster', ja: 'ScanSnap Home画面' },
+      key: 'software_screen',
+      label: { de: 'support software Fenster', en: 'support software screen', pt: 'Janela do support software', es: 'Ventana de support software', fr: 'Fenêtre support software', it: 'Finestra support software', nl: 'support software-venster', ja: 'support software画面' },
       text: {
-        de: 'Screenshot des betroffenen ScanSnap Home Fensters bzw. der Scanner-Informationen',
-        en: 'Screenshot of the affected ScanSnap Home window or scanner information',
-        pt: 'Screenshot da janela afetada do ScanSnap Home ou das informações do scanner',
-        es: 'Captura de la ventana afectada de ScanSnap Home o de la información del escáner',
-        fr: 'Capture de la fenêtre ScanSnap Home concernée ou des informations du scanner',
-        it: 'Screenshot della finestra ScanSnap Home interessata o delle informazioni scanner',
-        nl: 'Screenshot van het betreffende ScanSnap Home-venster of de scannerinformatie',
-        ja: '該当するScanSnap Home画面またはスキャナー情報のスクリーンショット',
+        de: 'Screenshot des betroffenen support software Fensters bzw. der Scanner-Informationen',
+        en: 'Screenshot of the affected support software window or scanner information',
+        pt: 'Screenshot da janela afetada do support software ou das informações do scanner',
+        es: 'Captura de la ventana afectada de support software o de la información del escáner',
+        fr: 'Capture de la fenêtre support software concernée ou des informations du scanner',
+        it: 'Screenshot della finestra support software interessata o delle informazioni scanner',
+        nl: 'Screenshot van het betreffende support software-venster of de scannerinformatie',
+        ja: '該当するsupport software画面またはスキャナー情報のスクリーンショット',
       },
     },
     {
@@ -558,7 +558,7 @@ function EmailBuilder({ session, brain, lang }) {
   const moduleStepPatterns = {
     usb_direct: /usb|direkt|direct|anschluss|cable|kabel/i,
     firmware_update_normal: /firmware|update/i,
-    sshomeclean: /sshome|cleanup|bereinig|reinstall|neu install|scansnap home/i,
+    sshomeclean: /sshome|cleanup|bereinig|reinstall|neu install|device home/i,
     sfc_dism: /sfc|dism|integrity|systemintegrität|windows/i,
     device_manager_usb: /geräte-manager|device manager|usb-stack|usb stack/i,
     firmware_recovery_instructions: /recovery|top sensor|empty arm|firmware-wiederherstellung/i,
@@ -900,8 +900,8 @@ function LocalCaseSummary({ session, lang }) {
       if (raw.includes('Direkte USB-Verbindung') || raw.includes('Verificar ligação USB direta')) return 'Checked direct USB connection';
       if (raw.includes('Anderen USB-Anschluss') || raw.includes('Testar outra porta USB')) return 'Tested another USB port and cable';
       if (raw.includes('Geräte-Manager') || raw.includes('Gestor de Dispositivos')) return 'Checked Windows Device Manager detection';
-      if (raw.includes('Scanner in ScanSnap Home entfernen') || raw.includes('Remover e voltar')) return 'Removed and reconnected scanner in ScanSnap Home';
-      if (raw.includes('ScanSnap Home bereinigen') || raw.includes('Limpar e reinstalar')) return 'Prepared ScanSnap Home cleanup and reinstall';
+      if (raw.includes('Scanner in support software entfernen') || raw.includes('Remover e voltar')) return 'Removed and reconnected scanner in support software';
+      if (raw.includes('support software bereinigen') || raw.includes('Limpar e reinstalar')) return 'Prepared support software cleanup and reinstall';
       if (raw.includes('Windows-Systemintegrität')) return 'Checked Windows system integrity (SFC/DISM)';
       if (raw.includes('WLAN-Status') || raw.includes('estado do Wi')) return 'Checked scanner Wi-Fi status';
       if (raw.includes('Scanner und Computer im selben Netzwerk') || raw.includes('mesma rede')) return 'Checked scanner and computer are on the same network';
@@ -1039,7 +1039,7 @@ function buildFollowupReminderEmail(session, step, lang = 'de') {
   const templates = {
     de: `Guten Tag,
 
-ich wollte höflich nachfragen, ob Sie weiterhin Unterstützung zu Ihrem ScanSnap benötigen.
+ich wollte höflich nachfragen, ob Sie weiterhin Unterstützung zu Ihrem device benötigen.
 
 Falls ja, senden Sie uns bitte noch folgende Information zu, damit wir Ihre Anfrage weiter prüfen können:
 
@@ -1050,10 +1050,10 @@ Bitte antworten Sie direkt auf diese E-Mail, damit alle Informationen in Ihrer a
 Mit freundlichen Grüßen
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     en: `Hello,
 
-I just wanted to kindly follow up and ask whether you still need support with your ScanSnap.
+I just wanted to kindly follow up and ask whether you still need support with your device.
 
 If yes, please send us the following information so we can continue reviewing your request:
 
@@ -1064,10 +1064,10 @@ Please reply directly to this email so all information stays together in your ac
 Kind regards
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     pt: `Bom dia,
 
-Gostaria apenas de perguntar se ainda precisa de suporte com o seu ScanSnap.
+Gostaria apenas de perguntar se ainda precisa de suporte com o seu device.
 
 Se sim, por favor envie-nos ainda a seguinte informação para podermos continuar a analisar o seu pedido:
 
@@ -1078,10 +1078,10 @@ Por favor, responda diretamente a este e-mail para que todas as informações pe
 Atenciosamente
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     es: `Buenos días,
 
-Quería preguntarle amablemente si todavía necesita soporte con su ScanSnap.
+Quería preguntarle amablemente si todavía necesita soporte con su device.
 
 Si es así, envíenos todavía la siguiente información para poder continuar revisando su solicitud:
 
@@ -1092,10 +1092,10 @@ Por favor, responda directamente a este e-mail para que toda la información per
 Atentamente
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     fr: `Bonjour,
 
-Je souhaitais simplement vous demander si vous avez encore besoin d’assistance pour votre ScanSnap.
+Je souhaitais simplement vous demander si vous avez encore besoin d’assistance pour votre device.
 
 Si oui, veuillez nous envoyer l’information suivante afin que nous puissions poursuivre l’analyse de votre demande :
 
@@ -1106,10 +1106,10 @@ Veuillez répondre directement à cet e-mail afin que toutes les informations re
 Cordialement
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     it: `Buongiorno,
 
-Volevo gentilmente chiederle se ha ancora bisogno di supporto per il suo ScanSnap.
+Volevo gentilmente chiederle se ha ancora bisogno di supporto per il suo device.
 
 In caso affermativo, ci invii ancora la seguente informazione, così possiamo continuare a verificare la sua richiesta:
 
@@ -1120,10 +1120,10 @@ La preghiamo di rispondere direttamente a questa e-mail, così tutte le informaz
 Cordiali saluti
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     nl: `Goedendag,
 
-Ik wilde vriendelijk navragen of u nog ondersteuning nodig heeft voor uw ScanSnap.
+Ik wilde vriendelijk navragen of u nog ondersteuning nodig heeft voor uw device.
 
 Als dat zo is, stuur ons dan alstublieft nog de volgende informatie, zodat wij uw verzoek verder kunnen controleren:
 
@@ -1134,10 +1134,10 @@ Reageer alstublieft rechtstreeks op deze e-mail, zodat alle informatie gebundeld
 Met vriendelijke groet
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
     ja: `お世話になっております。
 
-ScanSnapについて、引き続きサポートが必要か確認のためご連絡いたしました。
+deviceについて、引き続きサポートが必要か確認のためご連絡いたしました。
 
 必要な場合は、確認を進めるため以下の情報をお送りください：
 
@@ -1148,7 +1148,7 @@ ScanSnapについて、引き続きサポートが必要か確認のためご連
 よろしくお願いいたします。
 
 Marina Karlovic
-PFU Support Team`,
+Support Team`,
   };
 
   return templates[l] || templates.en;
@@ -1180,15 +1180,15 @@ function inferNextStepFromReply(reply = '', session = {}, lang = 'de') {
   if (/unbekannt|unknown device|dispositivo desconhecido|dispositivo desconocido|périphérique inconnu|periferica sconosciuta|onbekend apparaat|不明/.test(text)) {
     return make(
       l === 'en' ? 'Handle unknown USB device' : 'Unbekanntes USB-Gerät prüfen',
-      l === 'en' ? 'Windows detects something, but not correctly. Remove the unknown device in Device Manager, disconnect USB, restart the PC, reconnect directly and then check ScanSnap Home again.' : 'Windows erkennt ein Gerät, aber nicht korrekt. Entferne das unbekannte Gerät im Geräte-Manager, trenne USB, starte den PC neu, verbinde direkt erneut und prüfe danach ScanSnap Home.',
+      l === 'en' ? 'Windows detects something, but not correctly. Remove the unknown device in Device Manager, disconnect USB, restart the PC, reconnect directly and then check support software again.' : 'Windows erkennt ein Gerät, aber nicht korrekt. Entferne das unbekannte Gerät im Geräte-Manager, trenne USB, starte den PC neu, verbinde direkt erneut und prüfe danach support software.',
       'USB_CONNECTION'
     );
   }
 
   if (/korrekt|correctly|visible|sichtbar|aparece corretamente|correctamente|correctement|correttamente|zichtbaar|正常/.test(text)) {
     return make(
-      l === 'en' ? 'Check ScanSnap Home registration' : 'ScanSnap Home Registrierung prüfen',
-      l === 'en' ? 'The scanner seems visible to Windows. Continue with removing and reconnecting the scanner in ScanSnap Home, then test again.' : 'Der Scanner scheint in Windows sichtbar zu sein. Fahre mit Entfernen und erneuter Registrierung des Scanners in ScanSnap Home fort und teste danach erneut.',
+      l === 'en' ? 'Check support software registration' : 'support software Registrierung prüfen',
+      l === 'en' ? 'The scanner seems visible to Windows. Continue with removing and reconnecting the scanner in support software, then test again.' : 'Der Scanner scheint in Windows sichtbar zu sein. Fahre mit Entfernen und erneuter Registrierung des Scanners in support software fort und teste danach erneut.',
       'SOFTWARE'
     );
   }
