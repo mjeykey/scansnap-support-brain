@@ -1,5 +1,5 @@
 // Session state management for troubleshooting flow
-const SESSION_KEY = 'scansnap_session';
+const SESSION_KEY = 'support_session';
 
 const defaultSession = {
   problem: '',
