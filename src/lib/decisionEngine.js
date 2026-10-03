@@ -288,9 +288,9 @@ export function detectMissingInfo(session, lang = 'en') {
   const missing = [];
   if (!session.model || session.model === 'unknown') missing.push(ui.missing_model);
   if (!session.connectionType || session.connectionType === 'unknown') missing.push(ui.missing_connection);
-  if (!session.scannerState || session.scannerState === 'unknown') missing.push(ui.missing_scanner_state);
   if (!session.os) missing.push(ui.missing_os);
-  return missing;
+  if (!session.problem || !String(session.problem).trim()) missing.push(ui.missing_problem || 'Problem description');
+  return missing.filter(Boolean);
 }
 
 // ── Case Status Logic ───────────────────────────────────────
@@ -648,70 +648,43 @@ export function selectNextAction(session, kbEntry, category, scannerState, missi
  * Returns { stepId, difficulty, _dynamic: true } or null if exhausted.
  */
 export function generateNextDynamicStep(session, kbEntry) {
-  const steps    = session.steps || [];
-  const problem  = (session.problem || '');
+  const steps = session.steps || [];
+  const used = new Set(steps.map(s => s.stepId).filter(Boolean));
+  const problem = String(session.problem || '').toLowerCase();
+  const connection = String(session.connectionType || session.connection || '').toLowerCase();
 
-  // Dedup: check by stepId (for dynamic steps) or by keyword match on title (for KB steps)
-  const usedStepIds = new Set(steps.map(s => s.stepId).filter(Boolean));
-  const allTitles   = steps.map(s => (s.title || '').toLowerCase());
-  const alreadyByTitle = (keyword) => allTitles.some(t => new RegExp(keyword, 'i').test(t));
-  const already = (stepId, keyword) => usedStepIds.has(stepId) || alreadyByTitle(keyword);
+  const candidates = [];
 
-  const category = classifyIssueCategory(problem, kbEntry);
-
-  // ── Ordered progression chains — stepId + keyword fallback for KB step dedup ──
-
-  const firmwareChain = [
-    { stepId: 'verifyDeviceState',         keyword: 'verify|state|power|led|display' },
-    { stepId: 'directUsbConnectionTest',   keyword: 'direct usb|direct connection|usb cable|reconnect' },
-    { stepId: 'checkSoftwareEnvironment',  keyword: 'software|application|cleanup|reinstall' },
-    { stepId: 'standardFirmwareUpdate',    keyword: 'firmware update|normal update' },
-    { stepId: 'prepareVendorReview',       keyword: 'vendor|manufacturer|review|escalat' },
-  ];
-
-  const softwareChain = [
-    { stepId: 'checkSoftwareEnvironment', keyword: 'software|application|cleanup|reinstall' },
-    { stepId: 'checkSystemIntegrity',     keyword: 'sfc|dism|system integrity|systemreparatur|integridade|windows repair' },
-    { stepId: 'rebuildUsbStack',          keyword: 'device manager|usb|driver' },
-    { stepId: 'recreateProfiles',         keyword: 'profile|scan to folder|library|destination' },
-  ];
-
-  const usbChain = [
-    { stepId: 'directUsbConnectionTest',   keyword: 'direct usb|native usb|reconnect|usb cable' },
-    { stepId: 'windowsSystemRepair',       keyword: 'sfc|dism|system integrity|systemreparatur|integridade|windows repair' },
-    { stepId: 'rebuildUsbStack',           keyword: 'device manager|usb stack|stale|registration' },
-    { stepId: 'disableUsbPowerManagement', keyword: 'power management|usb power|selective suspend' },
-    { stepId: 'checkSoftwareEnvironment',  keyword: 'software|application|cleanup|reinstall' },
-  ];
-
-  const networkChain = [
-    { stepId: 'repairWifiConnection',  keyword: 'wifi|wi-fi|wireless|reconnect|pairing' },
-    { stepId: 'checkRouterBandSteering', keyword: 'band steering|2.4ghz|5ghz|router' },
-    { stepId: 'reauthCloudStorage',    keyword: 'onedrive|cloud|sync|smb|nas' },
-  ];
-
-  const hardwareChain = [
-    { stepId: 'cleanRollersAndGlass', keyword: 'clean|roller|glass|streak|maintenance' },
-    { stepId: 'checkPaperPath',       keyword: 'paper path|skew|misalignment|feed' },
-  ];
-
-  const chains = {
-    firmware: firmwareChain,
-    software: softwareChain,
-    usb:      usbChain,
-    network:  networkChain,
-    hardware: hardwareChain,
-  };
-
-  const chain = chains[category] || softwareChain;
-
-  for (const { stepId, keyword } of chain) {
-    if (!already(stepId, keyword)) {
-      return { stepId, status: 'pending', result: '', note: '', timestamp: null, _dynamic: true };
-    }
+  // First clarify the symptom if the case description is still too vague.
+  if (!problem.trim() || problem.trim().length < 5) {
+    candidates.push('collectErrorDetails');
   }
 
-  return null;
+  // Connection-specific first checks.
+  if (connection.includes('usb')) candidates.push('directUsbConnectionTest');
+  if (connection.includes('wifi') || connection.includes('wi-fi') || connection.includes('wlan')) {
+    candidates.push('wifiConnectionTest');
+  }
+
+  // If the symptom mentions an error/code/message, make sure exact details are captured.
+  if (/error|fehler|erro|erreur|fout|code|meldung|message|failed|failure/.test(problem)) {
+    candidates.push('collectErrorDetails');
+  }
+
+  // Generic state verification is the safe fallback for unclear or non-connection cases.
+  candidates.push('verifyDeviceState');
+
+  const nextId = candidates.find(id => !used.has(id));
+  if (!nextId) return null;
+
+  return {
+    stepId: nextId,
+    status: 'pending',
+    result: '',
+    note: '',
+    timestamp: null,
+    _dynamic: true,
+  };
 }
 
 // ── Language-aware email loader ─────────────────────────────
