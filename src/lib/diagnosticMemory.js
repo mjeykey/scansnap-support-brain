@@ -102,7 +102,7 @@ export function buildAutoCaseSummary(session, timeline, finalState) {
     remote_session:    `Multiple steps failed without resolution. Remote session recommended to investigate live system state.`,
     escalation:        `All standard troubleshooting paths exhausted. Escalation to L2/engineering required.`,
     firmware_recovery: `Firmware corruption suspected. Standard update paths attempted without success. Recovery procedure may be required.`,
-    reinstall:         `Software environment appears corrupted. Full reinstallation of ScanSnap Home required.`,
+    reinstall:         `Software environment appears corrupted. Full reinstallation of the support application may be required.`,
     hardware_suspicion:`Hardware-level issue suspected. Multiple hardware-related steps failed. Physical inspection or replacement may be required.`,
   };
 
@@ -130,7 +130,7 @@ export function buildAutoCaseSummary(session, timeline, finalState) {
  * from the diagnostic timeline and final state.
  */
 export function buildEmailPrompt(session, timeline, finalState, language, currentEmailDraft = '') {
-  const model    = session.model || session.device || 'the scanner';
+  const model    = session.model || session.device || 'the device';
   const problem  = session.problem || '';
   const langLabel = {
     de: 'German', en: 'English', fr: 'French', es: 'Spanish',
@@ -149,13 +149,13 @@ export function buildEmailPrompt(session, timeline, finalState, language, curren
     remote_session:    'Multiple steps have been attempted without resolution. Write an email explaining the situation and proposing a remote support session.',
     escalation:        'All troubleshooting steps have been exhausted. Write an empathetic email explaining that the case requires deeper technical investigation and that the team will follow up.',
     firmware_recovery: 'Firmware-related issue. Write an email explaining that further firmware recovery steps are required and provide clear instructions.',
-    reinstall:         'A full software reinstallation is required. Write an email with step-by-step reinstallation instructions for ScanSnap Home.',
+    reinstall:         'A full software reinstallation is required. Write an email with step-by-step reinstallation instructions for the support application.',
     hardware_suspicion:'Hardware issue is suspected after all software steps failed. Write an email explaining the situation and recommending a device inspection or repair.',
   };
 
   const direction = STATE_DIRECTION[finalState] || STATE_DIRECTION.continue;
 
-  return `You are a ScanSnap technical support agent writing a customer-facing email.
+  return `You are a technical support agent writing a customer-facing email.
 
 STRICT RULES:
 - Write ONLY in ${langLabel}
@@ -165,7 +165,7 @@ STRICT RULES:
 - Do NOT invent steps that were not performed
 - Keep it concise but complete
 
-Scanner Model: ${model}
+Device Model: ${model}
 Original Issue: ${problem}
 
 Troubleshooting performed (in order):
@@ -211,8 +211,8 @@ export function buildCleanCaseSummary(session, timeline, finalState, lang = 'de'
     const map = [
       ['Direct USB connection', 'Direkten USB-Anschluss testen'],
       ['Windows system integrity', 'Windows-Systemintegrität reparieren (SFC/DISM)'],
-      ['Clean and reinstall ScanSnap Home', 'ScanSnap Home bereinigen und neu installieren'],
-      ['Confirm scanner boot state', 'Scanner-Startzustand und USB-Erkennung prüfen'],
+      ['Clean and reinstall the support application', 'Support-Anwendung bereinigen und neu installieren'],
+      ['Confirm device boot state', 'Geräte-Startzustand und USB-Erkennung prüfen'],
       ['Firmware Recovery', 'Firmware-Recovery vorbereiten']
     ];
     if ((lang || 'de').toLowerCase() === 'de') {
