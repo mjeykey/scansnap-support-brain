@@ -58,7 +58,7 @@ export default function ScannerVisual({ isAnalyzing, disabled, onClick }) {
 
         {/* Label */}
         <span className="text-[10px] font-medium text-muted-foreground tracking-widest mt-1">
-          SCANSNAP
+          DEVICE
         </span>
       </motion.button>
 
