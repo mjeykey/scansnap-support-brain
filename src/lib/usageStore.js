@@ -1,5 +1,5 @@
 // Session-basierte Nutzungsstatistik (keine AI für Zählung)
-const KEY = 'scansnap_usage';
+const KEY = 'support_usage';
 
 const defaultUsage = { localSearches: 0, aiAnalyses: 0 };
 
