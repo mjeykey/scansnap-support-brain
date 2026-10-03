@@ -33,7 +33,7 @@ export function getProcessMissingInfo(session = {}) {
 export function buildHardwareProcessEmail(session = {}, lang = 'de') {
   const missing = getProcessMissingInfo(session);
   const model = session.model || session.device || session.knownFacts?.model || 'Scanner';
-  const supporter = session.supporterName || 'PFU Support Team';
+  const supporter = session.supporterName || 'Support Team';
   const l = (lang || 'de').toLowerCase();
   const needs = key => missing.some(m => m.key === key);
 
@@ -45,7 +45,7 @@ export function buildHardwareProcessEmail(session = {}, lang = 'de') {
     if (needs('contactConfirmed')) b.push('- Confirmation of the current contact person');
     if (needs('contactConfirmed')) b.push('- If another contact person should handle the case, please provide name, email address and phone number');
     if (needs('serialNumber')) b.push('- Scanner serial number');
-    return `Hello,\n\nThank you for your feedback.\n\nAs the troubleshooting steps performed so far did not resolve the issue and the recommended checks have been completed, we would now like to prepare the next steps for a possible hardware process for your ${model}.\n\nFor this, please provide or confirm the following information:\n\n${b.join('\n') || '- No further customer information is currently missing.'}\n\nOnce we have received this information, we will review the next steps and get back to you as soon as possible.\n\nPlease reply directly to this email so no duplicate case is created.\n\nKind regards\n\n${supporter}\nPFU Support Team`;
+    return `Hello,\n\nThank you for your feedback.\n\nAs the troubleshooting steps performed so far did not resolve the issue and the recommended checks have been completed, we would now like to prepare the next steps for a possible hardware process for your ${model}.\n\nFor this, please provide or confirm the following information:\n\n${b.join('\n') || '- No further customer information is currently missing.'}\n\nOnce we have received this information, we will review the next steps and get back to you as soon as possible.\n\nPlease reply directly to this email so no duplicate case is created.\n\nKind regards\n\n${supporter}\nSupport Team`;
   }
 
   const b = [];
@@ -55,7 +55,7 @@ export function buildHardwareProcessEmail(session = {}, lang = 'de') {
   if (needs('contactConfirmed')) b.push('- Bestätigung der bisherigen Ansprechperson');
   if (needs('contactConfirmed')) b.push('- Falls die weitere Bearbeitung über eine andere Ansprechperson erfolgen soll, teilen Sie uns bitte deren Namen, E-Mail-Adresse und Telefonnummer mit');
   if (needs('serialNumber')) b.push('- Seriennummer des Scanners');
-  return `Guten Tag,\n\nvielen Dank für Ihre Rückmeldung.\n\nDa die bisher durchgeführten Maßnahmen das Problem leider nicht beheben konnten und die empfohlenen Prüfschritte abgeschlossen wurden, möchten wir nun die nächsten Schritte für einen möglichen Hardwareprozess zu Ihrem ${model} vorbereiten.\n\nHierfür benötige ich bitte noch folgende Informationen:\n\n${b.join('\n') || '- Aktuell fehlen keine weiteren Kundeninformationen.'}\n\nSobald uns diese Informationen vorliegen, prüfen wir die weiteren Schritte und kommen schnellstmöglich auf Sie zurück.\n\nBitte antworten Sie hierfür einfach direkt auf diese E-Mail, damit kein neuer Vorgang entsteht.\n\nMit freundlichen Grüßen\n\n${supporter}\nPFU Support Team`;
+  return `Guten Tag,\n\nvielen Dank für Ihre Rückmeldung.\n\nDa die bisher durchgeführten Maßnahmen das Problem leider nicht beheben konnten und die empfohlenen Prüfschritte abgeschlossen wurden, möchten wir nun die nächsten Schritte für einen möglichen Hardwareprozess zu Ihrem ${model} vorbereiten.\n\nHierfür benötige ich bitte noch folgende Informationen:\n\n${b.join('\n') || '- Aktuell fehlen keine weiteren Kundeninformationen.'}\n\nSobald uns diese Informationen vorliegen, prüfen wir die weiteren Schritte und kommen schnellstmöglich auf Sie zurück.\n\nBitte antworten Sie hierfür einfach direkt auf diese E-Mail, damit kein neuer Vorgang entsteht.\n\nMit freundlichen Grüßen\n\n${supporter}\nSupport Team`;
 }
 
 export function buildProcessSummary(session = {}, lang = 'de') {
