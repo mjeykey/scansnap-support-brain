@@ -18,18 +18,6 @@ const statusColors = {
 
 
 function localizeHistoryStep(step) {
-  if (!step) return step;
-  const title = step.title || '';
-  const instruction = step.instruction || '';
-  const combined = `${title} ${instruction}`;
-
-  if (combined.includes('Confirm scanner boot state and USB detection first')) {
-    return {
-      ...step,
-      title: 'Scanner-Startzustand und USB-Erkennung zuerst prüfen; wenn Recovery-Symptome bestätigt sind, iX1600-Recovery über Top Sensor + Empty Arm mit eigenständigem Firmware-Updater per USB durchführen',
-      instruction: 'Prüfen Sie zuerst, ob der Scanner startet und per USB erkannt wird. Wenn sich bestätigt, dass sich der Scanner im Recovery-Zustand befindet oder das Firmwareupdate nicht korrekt abgeschlossen wurde, führen Sie die iX1600-Recovery über Top Sensor + Empty Arm durch und verwenden Sie anschließend den eigenständigen Firmware-Updater per USB.'
-    };
-  }
   return step;
 }
 
