@@ -1,6 +1,6 @@
 // ============================================================
 // OFFICIAL KB LAYER — src/data/official/
-// Adapts PFU official seed entries (SS-xxx) into the local KB
+// Adapts official seed entries into the local knowledge base
 // schema so they participate in search and display.
 //
 // Merge strategy:
