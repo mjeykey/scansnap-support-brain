@@ -263,7 +263,7 @@ export function assessEscalationReadiness(steps, scannerState, category, kbEntry
   }
 
   // Recovery attempted and failed
-  if (completed.some(s => /recovery|top sensor|empty arm/i.test(s.title || '')) &&
+  if (completed.some(s => /firmware|update|boot/i.test(s.title || '')) &&
       failed.some(s => /recovery|firmware/i.test(s.title || ''))) {
     reasons.push(ui.esc_recovery_failed); ready = true;
   }
@@ -271,7 +271,7 @@ export function assessEscalationReadiness(steps, scannerState, category, kbEntry
   // Firmware: all major paths tried (USB, SW env, standalone, recovery) and still failing
   if (category === 'firmware' && failed.length >= 3 &&
       steps.some(s => /usb|device manager/i.test(s.title || '')) &&
-      steps.some(s => /cleanup|sshomeclean|reinstall/i.test(s.title || ''))) {
+      steps.some(s => /cleanup|software|application|reinstall/i.test(s.title || ''))) {
     reasons.push(ui.esc_firmware_exhausted);
     ready = true;
   }
