@@ -2,6 +2,7 @@
 export const EMAIL_MODULES = {
   greeting: {
     key: 'greeting', category: 'structure',
+    label: { de: 'Begrüßung', en: 'Greeting', pt: 'Saudação' },
     text: {
       de: 'Guten Tag,\n\nvielen Dank für Ihre Nachricht.',
       en: 'Hello,\n\nThank you for your message.',
@@ -10,6 +11,7 @@ export const EMAIL_MODULES = {
   },
   closing: {
     key: 'closing', category: 'structure',
+    label: { de: 'Abschluss', en: 'Closing', pt: 'Encerramento' },
     text: {
       de: 'Bitte antworten Sie direkt auf diese E-Mail und teilen Sie uns das Ergebnis mit.\n\nMit freundlichen Grüßen\n[Supporter Name]',
       en: 'Please reply directly to this email and let us know the result.\n\nBest regards\n[Supporter Name]',
@@ -18,6 +20,7 @@ export const EMAIL_MODULES = {
   },
   usb_direct: {
     key: 'usb_direct', category: 'troubleshooting',
+    label: { de: 'Direkte USB-Verbindung testen', en: 'Test direct USB connection', pt: 'Testar ligação USB direta' },
     text: {
       de: 'Bitte verbinden Sie das Gerät direkt mit einem USB-Anschluss des Computers, ohne Hub, Dockingstation oder Verlängerung. Testen Sie nach Möglichkeit einen anderen USB-Anschluss und ein anderes Kabel.',
       en: 'Please connect the device directly to a USB port on the computer, without a hub, docking station or extension. If possible, try another USB port and cable.',
@@ -26,6 +29,7 @@ export const EMAIL_MODULES = {
   },
   wifi_check: {
     key: 'wifi_check', category: 'troubleshooting',
+    label: { de: 'WLAN-Verbindung prüfen', en: 'Check Wi-Fi connection', pt: 'Verificar ligação Wi-Fi' },
     text: {
       de: 'Bitte prüfen Sie, ob Gerät und Computer mit demselben Netzwerk verbunden sind. Starten Sie Gerät und Router neu und testen Sie die Verbindung erneut.',
       en: 'Please check that the device and computer are connected to the same network. Restart the device and router, then test the connection again.',
@@ -34,6 +38,7 @@ export const EMAIL_MODULES = {
   },
   request_error: {
     key: 'request_error', category: 'request',
+    label: { de: 'Fehlermeldung anfordern', en: 'Request error message', pt: 'Pedir mensagem de erro' },
     text: {
       de: 'Bitte senden Sie uns den genauen Wortlaut der Fehlermeldung oder einen Screenshot.',
       en: 'Please send us the exact error message or a screenshot.',
@@ -42,6 +47,7 @@ export const EMAIL_MODULES = {
   },
   request_missing_info: {
     key: 'request_missing_info', category: 'request',
+    label: { de: 'Fehlende Basisdaten anfordern', en: 'Request missing basic information', pt: 'Pedir dados básicos em falta' },
     text: {
       de: 'Bitte teilen Sie uns Modell, Betriebssystem, Verbindungsart und eine kurze Beschreibung des Problems mit.',
       en: 'Please provide the model, operating system, connection type and a short description of the issue.',
@@ -50,6 +56,7 @@ export const EMAIL_MODULES = {
   },
   waiting_response: {
     key: 'waiting_response', category: 'status',
+    label: { de: 'Testergebnis anfordern', en: 'Request test result', pt: 'Pedir resultado do teste' },
     text: {
       de: 'Bitte testen Sie den beschriebenen Schritt und teilen Sie uns das Ergebnis mit.',
       en: 'Please test the described step and let us know the result.',
@@ -74,6 +81,7 @@ export function assembleEmail(selectedKeys=[], lang='en', supporterName='') {
   }
   let closing=getModuleText('closing',lang);
   if (supporterName) closing=closing.replace('[Supporter Name]',supporterName);
+  else closing=closing.replace('[Supporter Name]','Support Team');
   parts.push(closing);
   return parts.filter(Boolean).join('\n\n');
 }
