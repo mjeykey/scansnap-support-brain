@@ -535,97 +535,43 @@ export default function Home() {
   };
 
   const buildSeedSteps = (topEntry, detectedModel, enrichedProblem) => {
-    const forcedPath = forcePathBeforeKnowledgeBase({
-      connectionType,
+    const tempSession = {
       problem: problem.trim(),
-    });
-
-    const pathKey = forcedPath || detectSupportPath({
-      connectionType,
-      problem: problem.trim(),
-      model: detectedModel,
-    });
-
-    let seedSteps = pathKey ? makePathSteps(pathKey, language) : [];
-    const hardLockError5 = !!forcedPath;
-
-    if (topEntry && !hardLockError5) {
-      const localized = getKBEntryInLanguage(topEntry, language);
-      const kbSteps = (localized.solution_steps || []).map((s) => ({
-        title: typeof s === 'string' ? s : s.title,
-        instruction: typeof s === 'string' ? s : (s.instruction || s.title),
-        difficulty: s.difficulty || 'medium',
-        status: 'pending',
-        result: '',
-        note: '',
-        timestamp: null,
-        source: 'knowledge_base',
-      }));
-
-      const existingTitles = new Set(seedSteps.map(s => (s.title || '').toLowerCase()));
-      const filteredKb = kbSteps.filter(s => {
-        const title = (s.title || '').toLowerCase();
-        const instruction = (s.instruction || '').toLowerCase();
-        if (pathKey === 'USB_CONNECTION' && /sfc|dism|systemintegrität|windows-system/.test(title + ' ' + instruction)) return false;
-        return !existingTitles.has(title);
-      });
-
-      seedSteps = [...seedSteps, ...filteredKb].slice(0, 7);
-    }
-
-    if (hardLockError5 && seedSteps.length > 0) {
-      return seedSteps.slice(0, 7);
-    }
-
-    if (seedSteps.length === 0) {
-      const tempSession = {
-        problem: problem.trim(),
-        steps: [],
-        model: detectedModel,
-        device: detectedModel,
-        connectionType: connectionType || 'unknown',
-        os: osLabel(osType, language),
-        osType,
-        contactSource,
-        source: contactSource,
-      };
-      const dynamicSteps = [];
-      let nextStep = generateNextDynamicStep(tempSession, topEntry);
-      while (nextStep && dynamicSteps.length < 5) {
-        dynamicSteps.push({ ...nextStep, status: 'pending', result: '', note: '', timestamp: null, source: 'decision_engine' });
-        nextStep = generateNextDynamicStep({ ...tempSession, steps: dynamicSteps }, topEntry);
-      }
-      seedSteps = dynamicSteps;
-    }
-
-    const contextSession = {
+      steps: [],
       model: detectedModel,
       device: detectedModel,
-      connectionType,
+      connectionType: connectionType || 'unknown',
       os: osLabel(osType, language),
       osType,
       contactSource,
       source: contactSource,
-      problem: problem.trim(),
-      issueType: classifyIssueCategory(enrichedProblem, topEntry),
     };
 
-    const experienceSteps = getExperienceSteps(contextSession, 2);
-    const existingTitles = new Set(seedSteps.map((s) => (s.title || '').toLowerCase()));
+    const seedSteps = [];
+    let nextStep = generateNextDynamicStep(tempSession, topEntry);
 
-    const uniqueExperience = experienceSteps.filter((s) => {
-      const title = (s.title || '').toLowerCase();
-      const instruction = (s.instruction || '').toLowerCase();
-      if (existingTitles.has(title)) return false;
-      if (pathKey === 'USB_CONNECTION' && /sfc|dism|systemintegrität|windows-system/.test(title + ' ' + instruction)) return false;
-      return true;
-    });
-
-    if (pathKey && seedSteps.length > 2) {
-      return [...seedSteps.slice(0, 2), ...uniqueExperience, ...seedSteps.slice(2)].slice(0, 8);
+    while (nextStep && seedSteps.length < 4) {
+      seedSteps.push({
+        ...nextStep,
+        status: 'pending',
+        result: '',
+        note: '',
+        timestamp: null,
+        source: 'generic_flow',
+      });
+      nextStep = generateNextDynamicStep({ ...tempSession, steps: seedSteps }, topEntry);
     }
 
-    return [...uniqueExperience, ...seedSteps].slice(0, 7);
+    return seedSteps.length > 0
+      ? seedSteps
+      : [{
+          stepId: 'verifyDeviceState',
+          status: 'pending',
+          result: '',
+          note: '',
+          timestamp: null,
+          source: 'generic_flow',
+        }];
   };
 
   const handleAnalyze = () => {
