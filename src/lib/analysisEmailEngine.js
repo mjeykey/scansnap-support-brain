@@ -139,9 +139,9 @@ function thanks(lang) {
 }
 
 function closing(lang, supporter) {
-  if (lang === 'en') return `Please reply directly to this email so no duplicate case is created.\n\nKind regards\n\n${supporter}\nPFU Tech Support Team`;
-  if (lang === 'pt') return `Por favor responda diretamente a este e-mail para evitar a criação de um novo caso.\n\nCom os melhores cumprimentos\n\n${supporter}\nPFU Tech Support Team`;
-  return `Bitte antworten Sie direkt auf diese E-Mail, damit kein neuer Vorgang entsteht.\n\nMit freundlichen Grüßen\n\n${supporter}\nPFU Tech Support Team`;
+  if (lang === 'en') return `Please reply directly to this email so no duplicate case is created.\n\nKind regards\n\n${supporter}\nSupport Team`;
+  if (lang === 'pt') return `Por favor responda diretamente a este e-mail para evitar a criação de um novo caso.\n\nCom os melhores cumprimentos\n\n${supporter}\nSupport Team`;
+  return `Bitte antworten Sie direkt auf diese E-Mail, damit kein neuer Vorgang entsteht.\n\nMit freundlichen Grüßen\n\n${supporter}\nSupport Team`;
 }
 
 export function shouldUseAnalysisAwareEmail(session = {}) {
