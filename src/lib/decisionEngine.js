@@ -578,65 +578,41 @@ const NEXT_ACTION_TEMPLATES = {
 };
 
 export function selectNextAction(session, kbEntry, category, scannerState, missingInfo, steps) {
-  const completed = steps.filter(s => s.status === 'solved' || s.status === 'done').map(s => s.title || '');
-  const failed    = steps.filter(s => s.status === 'not_solved' || s.status === 'not_possible').map(s => s.title || '');
-  const blocked   = steps.filter(s => s.status === 'blocked').map(s => s.title || '');
+  const completed = steps.filter(s => ['solved', 'done'].includes(s.status));
+  const failed = steps.filter(s => ['not_solved', 'not_possible'].includes(s.status));
+  const pending = steps.filter(s => s.status === 'pending');
 
-  // Priority 1: Safety — missing info before anything complex
-  if (missingInfo.length > 0 && completed.length === 0 && (category === 'firmware' || category === 'hardware')) {
-    return { action: 'request_info', reason: 'Critical info missing before firmware/hardware path', params: { info: missingInfo.join('; ') } };
-  }
-
-  // Priority 2: Firmware — run full diagnostic state machine
-  if (category === 'firmware') {
-    const fwDiag = runFirmwareDiagnostic(session, scannerState, completed, failed);
-    if (fwDiag.firmwareWorkflow === 'VERIFY_STATE') {
-      return { action: 'request_info', reason: fwDiag.workflowReason, params: { info: fwDiag.nextSteps.join(' | ') }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'WIN_INTEGRITY') {
-      return { action: 'win_integrity', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'USB_COMM') {
-      return { action: 'usb_stack', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'SW_ENV') {
-      return { action: 'software_cleanup', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'NORMAL') {
-      return { action: 'firmware_normal', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'RETRY_STANDALONE') {
-      return { action: 'firmware_normal', reason: fwDiag.workflowReason, params: { instruction: fwDiag.nextSteps[0] }, fwDiag };
-    }
-    if (fwDiag.firmwareWorkflow === 'REVIEW') {
-      return { action: 'review', reason: fwDiag.workflowReason, fwDiag };
-    }
-  }
-
-  // Priority 3: Dedup — don't repeat completed steps
-  const pendingSteps = steps.filter(s => s.status === 'pending');
-  const trueNext = pendingSteps.find(s => !stepAlreadyDone(s.instruction || s.title || '', completed));
-
-  // Priority 4: Category-based fallback if no pending steps
-  if (!trueNext || pendingSteps.length === 0) {
-    if (failed.length >= 2 && !blocked.some(b => b.toLowerCase().includes('remote'))) {
-      return { action: 'request_remote', reason: 'Multiple failures, remote session may help' };
-    }
-    if (failed.length >= 3) return { action: 'review', reason: 'All reasonable steps exhausted' };
-
-    // Category fallback
-    const fallbacks = {
-      software:  'software_cleanup',
-      usb:       'usb_stack',
-      network:   'wifi_setup',
-      firmware:  'firmware_normal',
-      hardware:  'hardware_clean',
-      profile:   'profile_recreate',
+  if (missingInfo.length > 0 && completed.length === 0) {
+    return {
+      action: 'request_info',
+      reason: 'Required case information is still missing',
+      params: { info: missingInfo.join('; ') },
     };
-    return { action: fallbacks[category] || 'continue', reason: `Category fallback: ${category}` };
   }
 
-  return { action: 'continue', reason: 'Next KB step available', nextStep: trueNext };
+  if (pending.length > 0) {
+    return {
+      action: 'continue',
+      reason: 'Continue with the next pending troubleshooting step',
+      nextStep: pending[0],
+    };
+  }
+
+  if (session.status === 'solved') {
+    return { action: 'continue', reason: 'Case is resolved' };
+  }
+
+  if (failed.length > 0 || session.status === 'exhausted') {
+    return {
+      action: 'review',
+      reason: 'No further generic troubleshooting step is available; review or escalation may be appropriate',
+    };
+  }
+
+  return {
+    action: 'continue',
+    reason: 'Continue collecting results and case details',
+  };
 }
 
 // ── Dynamic next step generator ─────────────────────────────
