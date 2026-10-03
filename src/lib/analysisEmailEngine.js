@@ -25,7 +25,7 @@ function pendingSteps(session = {}) {
 
 function isHardwareCandidate(session = {}) {
   const text = `${session.problem || ''} ${session.issueType || ''}`.toLowerCase();
-  return /hardware|ds42039|h8000|kein strom|no power|sensor|mechanik|mechanical|paper jam|papierstau/.test(text);
+  return /hardware|kein strom|no power|sensor|mechanik|mechanical|paper jam|papierstau/.test(text);
 }
 
 function isExhausted(session = {}) {
@@ -57,9 +57,9 @@ function missingLabel(key, lang = 'de') {
       os: 'Betriebssystem',
       problemSince: 'seit wann das Problem auftritt',
       errorScreenshot: 'Screenshot oder Foto der angezeigten Fehlermeldung',
-      behaviourVideo: 'falls möglich, ein kurzes Video des Scannerverhaltens',
-      ledPhoto: 'Foto der aktuellen LED-/Display-Anzeige des Scanners',
-      location: 'Bestätigung des aktuellen Scannerstandorts',
+      behaviourVideo: 'falls möglich, ein kurzes Video des Geräteverhaltens',
+      ledPhoto: 'Foto der aktuellen LED-/Display-Anzeige des Geräts',
+      location: 'Bestätigung des aktuellen Gerätestandorts',
       contact: 'Bestätigung der bisherigen Ansprechperson bzw. abweichende Kontaktdaten',
       scanCount: 'aktueller Scan Count, falls verfügbar',
     },
@@ -67,9 +67,9 @@ function missingLabel(key, lang = 'de') {
       os: 'operating system',
       problemSince: 'when the issue first started',
       errorScreenshot: 'screenshot or photo of the displayed error message',
-      behaviourVideo: 'if possible, a short video of the scanner behavior',
-      ledPhoto: 'photo of the current LED/display status of the scanner',
-      location: 'confirmation of the current scanner location',
+      behaviourVideo: 'if possible, a short video of the device behavior',
+      ledPhoto: 'photo of the current LED/display status of the device',
+      location: 'confirmation of the current device location',
       contact: 'confirmation of the current contact person or updated contact details',
       scanCount: 'current scan count, if available',
     },
@@ -77,9 +77,9 @@ function missingLabel(key, lang = 'de') {
       os: 'sistema operativo',
       problemSince: 'desde quando o problema ocorre',
       errorScreenshot: 'captura de ecrã ou foto da mensagem de erro',
-      behaviourVideo: 'se possível, um vídeo curto do comportamento do scanner',
-      ledPhoto: 'foto do estado atual do LED/ecrã do scanner',
-      location: 'confirmação da localização atual do scanner',
+      behaviourVideo: 'se possível, um vídeo curto do comportamento do dispositivo',
+      ledPhoto: 'foto do estado atual do LED/ecrã do dispositivo',
+      location: 'confirmação da localização atual do dispositivo',
       contact: 'confirmação da pessoa de contacto ou dados atualizados',
       scanCount: 'contador de digitalizações atual, se disponível',
     },
@@ -151,7 +151,7 @@ export function shouldUseAnalysisAwareEmail(session = {}) {
 export function buildAnalysisAwareEmail(session = {}, lang = 'de') {
   const l = (lang || 'de').toLowerCase();
   const supporter = session.supporterName || '[Supporter Name]';
-  const model = session.model || session.device || session.knownFacts?.model || 'Scanner';
+  const model = session.model || session.device || session.knownFacts?.model || 'Device';
   const done = completedSteps(session);
   const waiting = waitingSteps(session);
   const exhausted = isExhausted(session);
