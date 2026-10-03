@@ -17,11 +17,11 @@
     "model detection",
     "boot/state check",
     "direct USB availability",
-    "ScanSnap Home detection",
+    "support application detection",
     "normal firmware update retry if scanner boots and is detected",
     "Windows SFC/DISM if communication/system instability",
     "USB stack rebuild only if pure USB enumeration issue persists",
-    "SSHomeClean and fresh ScanSnap Home reinstall if software environment issue persists",
+    "clean removal and fresh support application reinstall if the software environment issue persists",
     "model-specific recovery gate only if recovery symptoms confirmed",
     "escalation/request template only after troubleshooting exhausted or supporter selects it"
   ]
