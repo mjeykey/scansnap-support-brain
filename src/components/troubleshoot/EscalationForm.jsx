@@ -70,7 +70,7 @@ export default function EscalationForm({ steps, kbEntry, session }) {
         <div className="flex items-center gap-2">
           <AlertTriangle className="w-4 h-4 text-secondary" />
           <h3 className="text-sm font-semibold text-black">Escalation / Request</h3>
-          <span className="text-[10px] text-black/40 uppercase tracking-wide">Official PFU Templates · EN</span>
+          <span className="text-[10px] text-black/40 uppercase tracking-wide">Templates · EN</span>
         </div>
 
         {/* ── Template Selector ── */}
