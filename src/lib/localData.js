@@ -262,7 +262,7 @@ function scoreModelMatch(entryModels, selectedModel) {
   const sel = selectedModel.toLowerCase().replace(/[^a-z0-9]/g, '');
   if (!entryModels || entryModels.length === 0) return 0;
 
-  const genericTerms = ['scansnap', 'scansnaphome', 'scansnapcl', 'windows', 'macos', 'mac'];
+  const genericTerms = ['windows', 'macos', 'mac'];
   const nonGenericModels = entryModels.filter(m => {
     const mn = m.toLowerCase().replace(/[^a-z0-9]/g, '');
     return !genericTerms.some(g => mn === g);
